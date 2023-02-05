@@ -1,6 +1,5 @@
 package net.kaoruxun.ncepucore;
 
-import com.google.common.collect.Lists;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.command.Command;
@@ -14,14 +13,8 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.map.MapCanvas;
-import org.bukkit.map.MapRenderer;
-import org.bukkit.map.MapView;
 import net.kaoruxun.ncepucore.utils.Utils;
-import net.kaoruxun.ncepucore.SomeItems;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,21 +24,15 @@ import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 final class Rules implements Listener, CommandExecutor {
-    private static final String ITEM_NAME = "§e服务器规则二维码", NOT_ACCEPTED = "§c你还没有打开聊天框点击§a[同意服务器规定]§c!";
-    private static final Render render = new Render();
+    private static final String NOT_ACCEPTED = "§c你还没有打开聊天框点击§a[同意服务器规定]§c!";
     private final Location spawn;
-    private final MapView map = Bukkit.createMap(Objects.requireNonNull(Bukkit.getWorld("world")));
 
     private final HashSet<Player> notAccepts = new HashSet<>();
     private final File acceptsFile;
     private final Advancement ROOT = Bukkit.getAdvancement(new NamespacedKey("ncepucraft", "ncepucraft/root"));
     private String accepts = "";
 
-    {
-        map.getRenderers().forEach(map::removeRenderer);
-        map.addRenderer(render);
-        map.setLocked(true);
-    }
+
 
     @SuppressWarnings("ConstantConditions")
     public Rules(final Main main) {
@@ -74,7 +61,7 @@ final class Rules implements Listener, CommandExecutor {
         final PlayerInventory i = p.getInventory();
         final ItemStack is = i.getItemInMainHand();
         final ItemMeta im = is.getItemMeta();
-        if (im != null && im.hasDisplayName() && im.getDisplayName().equals(ITEM_NAME)) {
+        if (im != null && im.hasDisplayName() && im.getDisplayName().equals(Main.SOMEITEMS.ITEM_QRCODE_NAME)){
             i.remove(is);
             p.updateInventory();
         }
@@ -89,16 +76,17 @@ final class Rules implements Listener, CommandExecutor {
         p.sendMessage(Constants.RULES);
         p.sendMessage(Constants.JOIN_MESSAGE_FOOTER);
         if (p.getInventory().getItemInMainHand().getType() != Material.AIR) return;
-        final ItemStack is = new ItemStack(Material.FILLED_MAP);
-        final MapMeta meta = (MapMeta) is.getItemMeta();
-        meta.setMapView(map);
-        meta.setDisplayName(ITEM_NAME);
-        meta.setColor(Color.YELLOW);
-        meta.setLocationName("二维码");
-        meta.setUnbreakable(true);
-        meta.setLore(Lists.newArrayList(ITEM_NAME));
-        is.setItemMeta(meta);
-        p.getInventory().setItemInMainHand(is);
+
+//        final ItemStack is = new ItemStack(Material.FILLED_MAP);
+//        final MapMeta meta = (MapMeta) is.getItemMeta();
+//        meta.setMapView(map);
+//        meta.setDisplayName(ITEM_NAME);
+//        meta.setColor(Color.YELLOW);
+//        meta.setLocationName("二维码");
+//        meta.setUnbreakable(true);
+//        meta.setLore(Lists.newArrayList(ITEM_NAME));
+//        is.setItemMeta(meta);
+        p.getInventory().setItemInMainHand(Main.SOMEITEMS.getMap("QRCode.png", "二维码", SomeItems.ITEM_QRCODE_NAME));
     }
 
     @EventHandler
@@ -161,21 +149,5 @@ final class Rules implements Listener, CommandExecutor {
         return true;
     }
 
-    private final static class Render extends MapRenderer {
-        private BufferedImage buffer;
 
-        {
-            try {
-                buffer = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("QRCode.png")));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public void render(MapView map, MapCanvas canvas, Player player) {
-            canvas.drawImage(0, 0, buffer);
-        }
-    }
 }

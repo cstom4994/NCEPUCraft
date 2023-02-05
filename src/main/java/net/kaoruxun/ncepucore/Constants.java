@@ -71,7 +71,7 @@ public final class Constants {
         c.setUnderlined(true);
         c.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://docs.qq.com/doc/DRHlBR2NIeERpdFB6"));
 
-        RULES[2] = new TextComponent("  §e来阅读服务器规定\n  §7点击确认后则默认您已阅读并遵守服务器规定!\n       ");
+        RULES[2] = new TextComponent("  §e来阅读服务器规定\n  §7点击确认后则默认您已阅读并遵守服务器规定!\n");
 
         c = RULES[3] = new TextComponent(" [我已阅读并遵守服务器规定] §7或输入指令/acceptrule");
         c.setColor(ChatColor.GREEN);

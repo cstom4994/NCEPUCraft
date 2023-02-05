@@ -17,7 +17,7 @@ import java.util.TimeZone;
 
 @CommandName("status")
 public final class StatusCommand extends BasicCommand {
-    private final static String TEMPLATE = "\n§f游戏时间§7: %s (%d刻)\n§f运行时间§7: %d天 %s\n§f开服时间§7: %d年 %d天 %s\n§f服务器版本§7: %s\n§f内存使用§7: %.2f MB§f/ §7%.2f §f/ §7%.2f GB\n§f每Tick用时§7: %.3f 毫秒\n\n§f区块数§7: 主世界:%d 下界:%d 末地:%d\n";
+    private final static String TEMPLATE = "\n§f游戏时间§7: %s (%d刻)\n§f运行时间§7: %d天 %s\n§f开服时间§7: %d年 %d天 %s\n§f服务器版本§7: %s\n§f内存使用§7: %.2f MB §f/ §7%.2f GB §f/ §7%.2f GB\n§f每Tick用时§7: %.3f 毫秒\n\n§f区块数§7: 主世界:%d 下界:%d 末地:%d\n";
     private final static SimpleDateFormat FORMAT0 = new SimpleDateFormat("HH:mm:ss");
     private final static SimpleDateFormat FORMAT1 = new SimpleDateFormat("H小时 m分钟 s秒");
     private final static float GB = 1024 * 1024 * 1024;

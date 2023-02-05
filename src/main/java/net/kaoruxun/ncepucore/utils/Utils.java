@@ -120,6 +120,7 @@ public final class Utils {
     @SuppressWarnings("deprecation")
     public static String getDisplayName(final Player p) {
         return switch (p.getUniqueId().toString()) {
+            case "26caacc7-9506-4cca-b217-eb03150abc61" -> "§f薰喵";
             case "a2bf5901-8cd1-44cd-af49-cb7b839d8076" -> "§f奶思";
             default -> "§f" + p.getDisplayName();
         };

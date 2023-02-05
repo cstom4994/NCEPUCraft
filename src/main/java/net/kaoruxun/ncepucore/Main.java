@@ -114,6 +114,7 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @Command(name = "tpdeny")
 @Command(name = "tphere", permission = "ncepu.tphere")
 @Command(name = "freeze", permission = "ncepu.freeze")
+@Command(name = "test", permission = "ncepu.test")
 @Permission(name = "ncepu.afk", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.spawn", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.home", defaultValue = PermissionDefault.TRUE)
@@ -132,6 +133,7 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @Permission(name = "ncepu.mute")
 @Permission(name = "ncepu.db")
 @Permission(name = "ncepu.freeze")
+@Permission(name = "ncepu.test")
 
 @SuppressWarnings({"unused", "deprecation"})
 public final class Main extends JavaPlugin implements Listener {
@@ -244,7 +246,8 @@ public final class Main extends JavaPlugin implements Listener {
                     TpAcceptCommand.class,
                     TpaCommand.class,
                     TpDenyCommand.class,
-                    TpHereCommand.class
+                    TpHereCommand.class,
+                    TestCommand.class
             );
         } catch (Exception e) {
             e.printStackTrace();
