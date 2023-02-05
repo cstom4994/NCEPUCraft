@@ -1,5 +1,6 @@
 package net.kaoruxun.ncepucore;
 
+import com.destroystokyo.paper.Title;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.gson.JsonElement;
@@ -43,12 +44,34 @@ import org.bukkit.plugin.java.annotation.plugin.Website;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitTask;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
+import net.kaoruxun.ncepucore.commands.*;
+import net.kaoruxun.ncepucore.utils.*;
+import com.destroystokyo.paper.Title;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.annotation.command.Command;
+import org.bukkit.plugin.java.annotation.permission.Permission;
+import org.bukkit.plugin.java.annotation.plugin.*;
+import org.bukkit.plugin.java.annotation.plugin.author.Author;
+import org.bukkit.scheduler.BukkitTask;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static net.kaoruxun.ncepucore.Utils.registerCommand;
+import static net.kaoruxun.ncepucore.utils.Utils.registerCommand;
 
 // Based on https://github.com/neko-craft/NekoCore by Shirasawa
 @Plugin(name = "NCEPUCore", version = "1.0")
@@ -67,6 +90,48 @@ import static net.kaoruxun.ncepucore.Utils.registerCommand;
 @Command(name = "toggle")
 @Command(name = "acceptrule")
 @Command(name = "denyrule")
+
+@Command(name = "afk", permission = "ncepu.afk")
+@Command(name = "back", permission = "ncepu.back")
+@Command(name = "db", permission = "ncepu.db")
+@Command(name = "delwarp", permission = "ncepu.warp.del")
+@Command(name = "disrobe", permission = "ncepu.disrobe")
+@Command(name = "tpcancel")
+@Command(name = "home", permission = "ncepu.home")
+@Command(name = "warp", permission = "ncepu.warp")
+@Command(name = "mute", permission = "ncepu.mute")
+@Command(name = "othershome", permission = "ncepu.others")
+@Command(name = "sethome", permission = "ncepu.home")
+@Command(name = "setwarp", permission = "ncepu.warp.set")
+@Command(name = "spawn", permission = "ncepu.spawn")
+@Command(name = "status", permission = "ncepu.status")
+@Command(name = "sudo", permission = "ncepu.sudo")
+@Command(name = "toggle", permission = "ncepu.toggle")
+@Command(name = "tpaall", permission = "ncepu.tpaall")
+@Command(name = "tpaccept")
+@Command(name = "tpa", permission = "ncepu.tpa")
+@Command(name = "tpdeny")
+@Command(name = "tphere", permission = "ncepu.tphere")
+@Command(name = "freeze", permission = "ncepu.freeze")
+@Permission(name = "ncepu.afk", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.spawn", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.home", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.tpa", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.tphere", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.back", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.toggle", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.tpaall", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.status", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.disrobe", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.warp", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.others")
+@Permission(name = "ncepu.sudo.avoid")
+@Permission(name = "ncepu.immediate")
+@Permission(name = "ncepu.sudo")
+@Permission(name = "ncepu.mute")
+@Permission(name = "ncepu.db")
+@Permission(name = "ncepu.freeze")
+
 @SuppressWarnings({"unused", "deprecation"})
 public final class Main extends JavaPlugin implements Listener {
     private int i = 0;
@@ -90,6 +155,21 @@ public final class Main extends JavaPlugin implements Listener {
             QUESTION = Bukkit.getAdvancement(new NamespacedKey("ncepucraft", "ncepucraft/chat_question")),
             AT = Bukkit.getAdvancement(new NamespacedKey("ncepucraft", "ncepucraft/chat_at")),
             HOME = Bukkit.getAdvancement(new NamespacedKey("ncepucraft", "ncepucraft/home"));
+
+
+    public final WeakHashMap<Player, Pair<Integer, Location>> countdowns = new WeakHashMap<>();
+    public final WeakHashMap<Player, Pair<Long, Runnable>> playerTasks = new WeakHashMap<>();
+    public final WeakHashMap<Player, Pair<Location, Long>> afkPlayers = new WeakHashMap<>();
+    @SuppressWarnings("CanBeFinal")
+    public static net.kaoruxun.ncepucore.Main INSTANCE;
+    public final HashSet<String> mutedPlayers = new HashSet<>();
+    public final HashSet<String> warps = new HashSet<>();
+    private final WeakHashMap<Player, Long> delays = new WeakHashMap<>();
+    private BukkitTask countdownTask;
+
+    {
+        INSTANCE = this;
+    }
 
     @SuppressWarnings({"BusyWait", "ResultOfMethodCallIgnored", "ConstantConditions"})
     @Override
@@ -117,6 +197,68 @@ public final class Main extends JavaPlugin implements Listener {
         nether = s.getWorld("world_nether");
         theEnd = s.getWorld("world_the_end");
         final Location spawn = world.getSpawnLocation();
+
+
+
+
+        try {
+            if (!getDataFolder().exists()) getDataFolder().mkdir();
+            DatabaseSingleton.init(Iq80DBFactory.factory.open(new File(getDataFolder(), "database"),
+                    new Options().createIfMissing(true)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            setEnabled(false);
+            return;
+        }
+        getServer().getPluginManager().registerEvents(new Events(this), this);
+        try {
+            Utils.loadCommands(
+                    this,
+                    AfkCommand.class,
+                    BackCommand.class,
+                    CancelCommand.class,
+                    DbCommand.class,
+                    DelWarpCommand.class,
+                    DisrobeCommand.class,
+                    FreezeCommand.class,
+                    HomeCommand.class,
+                    MuteCommand.class,
+                    OthersHomeCommand.class,
+                    WarpCommand.class,
+                    SetHomeCommand.class,
+                    SetWarpCommand.class,
+                    SpawnCommand.class,
+                    StatusCommand.class,
+                    SudoCommand.class,
+                    ToggleCommand.class,
+                    TpaAllCommand.class,
+                    TpAcceptCommand.class,
+                    TpaCommand.class,
+                    TpDenyCommand.class,
+                    TpHereCommand.class
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            setEnabled(false);
+            return;
+        }
+        countdownTask = getServer().getScheduler().runTaskTimer(this, () -> {
+            final Iterator<Map.Entry<Player, Pair<Integer, Location>>> iterator = countdowns.entrySet().iterator();
+            while (iterator.hasNext()) {
+                final Map.Entry<Player, Pair<Integer, Location>> it = iterator.next();
+                final Player p = it.getKey();
+                final Pair<Integer, Location> pair = it.getValue();
+                if (--pair.left < 1) {
+                    iterator.remove();
+                    final Location dest = pair.right;
+                    if (dest == null) continue;
+                    Utils.teleportPlayer(p, dest);
+                    p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    p.sendActionBar("§a传送成功!");
+                } else p.sendActionBar("§e将在 §b" + pair.left + "秒 §e后进行传送!");
+            }
+        }, 20, 20);
+
 
         thread = new Thread(() -> {
             try {
@@ -213,6 +355,16 @@ public final class Main extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        if (countdownTask != null) countdownTask.cancel();
+        countdowns.clear();
+        playerTasks.clear();
+        try {
+            DatabaseSingleton.closeDatabase();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        countdownTask = null;
+
         deathRecords.clear();
         if (thread == null) return;
         thread.interrupt();
@@ -685,5 +837,66 @@ public final class Main extends JavaPlugin implements Listener {
         }
         e.setCancelled(true);
         entity.setCarriedBlock(null);
+    }
+
+
+    public void delayTeleport(final Player player, final Location loc) {
+        delayTeleport(player, loc, false);
+    }
+
+    public void delayTeleport(final Player player, Location loc, final boolean now) {
+        boolean isSafe = true;
+        if (player.getGameMode() == GameMode.SURVIVAL) {
+            final Location temp = Utils.findSafeLocation(loc);
+            if (temp == null) isSafe = false;
+            else loc = temp;
+        }
+        if (now || (!shouldPlayerBeDelayed(player) && isSafe)) {
+            countdowns.put(player, new Pair<>(1, loc));
+        } else {
+            player.sendMessage(Constants.MESSAGE_HEADER);
+            if (!isSafe) player.sendTitle(new Title("§c危!", "§e检测到目标位置可能不安全!"));
+            player.sendMessage(Constants.CANCEL_HUB);
+            player.sendMessage(Constants.MESSAGE_FOOTER);
+            countdowns.put(player, new Pair<>(10, loc));
+        }
+        if (!now) delays.put(player, System.currentTimeMillis() + 2 * 1000 * 60);
+    }
+
+    public void requestTeleport(Player player, String message, Runnable fn) {
+        playerTasks.put(player, new Pair<>(System.currentTimeMillis() + 2 * 1000 * 60, fn));
+        player.sendMessage(Constants.MESSAGE_HEADER);
+        player.sendMessage(message);
+        player.sendMessage(Constants.REQUEST_HUB);
+        player.sendMessage(Constants.MESSAGE_FOOTER);
+    }
+
+    public boolean cancelTeleport(final Player player) {
+        return countdowns.remove(player) != null;
+    }
+
+    public boolean shouldPlayerBeDelayed(Player player) {
+        if (player.hasPermission("ncepu.immediate")) return false;
+        final Long time = delays.get(player);
+        return time != null && time > System.currentTimeMillis();
+    }
+
+    public Player getPlayer(CommandSender sender, String name) {
+        final Player p = getServer().getPlayerExact(name);
+        if (p == null) {
+            sender.sendMessage(Constants.NO_SUCH_PLAYER);
+            return null;
+        }
+        if (p == sender) {
+            sender.sendMessage("§c你不能传送你自己!");
+            return null;
+        }
+        return p;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isAfking(final Player player) {
+        final Pair<Location, Long> pair = afkPlayers.get(player);
+        return pair != null && pair.right < System.currentTimeMillis();
     }
 }

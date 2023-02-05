@@ -8,19 +8,50 @@ version = pluginVersion as Object
 
 repositories {
     mavenCentral()
-    maven {
-        name = 'papermc'
-        url = 'https://papermc.io/repo/repository/maven-public/'
-    }
+
+    maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
+
     maven {
         name = 'spigotmc-repo'
         url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        name = 'destroystokyo-repo'
+        url = 'https://repo.destroystokyo.com/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
     }
 }
 
 dependencies {
     compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
-    compileOnly 'io.papermc.paper:paper-api:1.17-R0.1-SNAPSHOT'
+
+    compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
+
+    compileOnly 'io.netty:netty-buffer:4.1.50.Final'
+
+    // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
+    implementation group: 'org.iq80.leveldb', name: 'leveldb', version: '0.12'
 
     annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+
+//    compile('org.iq80.leveldb:leveldb:0.12') {
+//        exclude group: 'com.google.guava'
+//    }
 }
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+//tasks.withType(JavaCompile) {
+//    options.encoding = "UTF-8"
+//}

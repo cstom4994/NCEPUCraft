@@ -1,5 +1,15 @@
-package net.kaoruxun.ncepucore;
+package net.kaoruxun.ncepucore.utils;
 
+import net.kaoruxun.ncepucore.Constants;
+import net.kaoruxun.ncepucore.Main;
+import net.kaoruxun.ncepucore.commands.BasicCommand;
+import net.kaoruxun.ncepucore.commands.CommandName;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
@@ -15,7 +25,63 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 
+@SuppressWarnings("unused")
 public final class Utils {
+    private Utils() {
+    }
+
+    @SafeVarargs
+    public static void loadCommands(Main main, Class<? extends BasicCommand>... commands) throws Exception {
+        for (Class<? extends BasicCommand> it : commands) {
+            final CommandName name = it.getAnnotation(CommandName.class);
+            assert name != null;
+            final BasicCommand exec = it.getConstructor(Main.class).newInstance(main);
+            final PluginCommand cmd = main.getServer().getPluginCommand(name.value());
+            assert cmd != null;
+            cmd.setUsage(Constants.WRONG_USAGE);
+            cmd.setPermissionMessage(Constants.NO_PERMISSION);
+            cmd.setDescription(Constants.COMMAND_DESCRIPTION);
+            cmd.setExecutor(exec);
+            cmd.setTabCompleter(exec);
+        }
+    }
+
+    public static Location findSafeLocation(Location loc) {
+        int y = loc.getBlockY();
+        while (y > 0) {
+            final Material b = loc.getBlock().getType();
+            if (b == Material.WATER || b.isSolid()) {
+                loc.setY(y + 1);
+                return loc;
+            }
+            if (b == Material.LAVA) break;
+            loc.setY(--y);
+        }
+        return null;
+    }
+
+    public static boolean canTeleportOthers(CommandSender who) {
+        return who.hasPermission("ncepu.others");
+    }
+
+    public static void teleportPlayer(Player player, Entity entity) {
+        teleportPlayer(player, entity.getLocation());
+    }
+
+    public static void teleportPlayer(Player player, Location location) {
+        final Location lastLocation = player.getLocation();
+        player.teleport(location);
+        recordPlayerLocation(player, lastLocation);
+    }
+
+    public static void recordPlayerLocation(Player player) {
+        recordPlayerLocation(player, player.getLocation());
+    }
+
+    public static void recordPlayerLocation(Player player, Location loc) {
+        DatabaseSingleton.INSTANCE.setPlayerData(player, "lastLocation", Serializer.serializeLocation(loc));
+    }
+
     private static final World world = Bukkit.getWorld("world");
     private static final Object nmsWorld;
     private static Method getX, getY, getZ, toRodLightingLocation;
@@ -41,8 +107,6 @@ public final class Utils {
     }
 
     private static final BlockFace[] blockFaces = BlockFace.values();
-
-    private Utils() {}
 
     public static void registerCommand(final String name, final CommandExecutor e) {
         final PluginCommand cmd = Bukkit.getPluginCommand(name);
