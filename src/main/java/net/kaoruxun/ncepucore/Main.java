@@ -40,7 +40,6 @@ import org.bukkit.plugin.java.annotation.permission.Permission;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;
 import org.bukkit.plugin.java.annotation.plugin.Plugin;
-import org.bukkit.plugin.java.annotation.plugin.Website;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -49,22 +48,23 @@ import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 import net.kaoruxun.ncepucore.commands.*;
 import net.kaoruxun.ncepucore.utils.*;
-import com.destroystokyo.paper.Title;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.java.annotation.command.Command;
-import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.plugin.*;
-import org.bukkit.plugin.java.annotation.plugin.author.Author;
-import org.bukkit.scheduler.BukkitTask;
-import org.iq80.leveldb.Options;
-import org.iq80.leveldb.impl.Iq80DBFactory;
+import org.bukkit.block.data.Bisected;
+import org.bukkit.block.data.type.Stairs;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.spigotmc.event.entity.EntityDismountEvent;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -72,6 +72,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static net.kaoruxun.ncepucore.utils.Utils.registerCommand;
+import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 
 // Based on https://github.com/neko-craft/NekoCore by Shirasawa
 @Plugin(name = "NCEPUCore", version = "1.0")
@@ -144,6 +145,9 @@ public final class Main extends JavaPlugin implements Listener {
     private final Set<Player> beList = Collections.newSetFromMap(new WeakHashMap<>());
     private final Set<Player> warning = Collections.newSetFromMap(new WeakHashMap<>());
 
+    private final String CHAIRS_NAME = "$$Chairs$$";
+    private final HashSet<ArmorStand> chair_list = new HashSet<>();
+
     private final Advancement DEATH = Bukkit.getAdvancement(new NamespacedKey("ncepucraft", "ncepucraft/death")),
             STRIKE = Bukkit.getAdvancement(new NamespacedKey("ncepucraft", "ncepucraft/death_strike")),
             HUNGRY = Bukkit.getAdvancement(new NamespacedKey("ncepucraft", "ncepucraft/death_hungry")),
@@ -198,8 +202,11 @@ public final class Main extends JavaPlugin implements Listener {
         theEnd = s.getWorld("world_the_end");
         final Location spawn = world.getSpawnLocation();
 
-
-
+        // Chairs
+        s.getScheduler().runTaskTimer(this, () ->
+                        getServer().getWorlds().forEach(w -> w.getEntitiesByClasses(ArmorStand.class).forEach(this::check)),
+                100, 100);
+        s.getPluginManager().registerEvents(this, this);
 
         try {
             if (!getDataFolder().exists()) getDataFolder().mkdir();
@@ -355,6 +362,13 @@ public final class Main extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        chair_list.forEach(it -> {
+            it.getPassengers().forEach(Entity::leaveVehicle);
+            it.remove();
+        });
+        chair_list.clear();
+
+
         if (countdownTask != null) countdownTask.cancel();
         countdowns.clear();
         playerTasks.clear();
@@ -388,6 +402,13 @@ public final class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent e) {
         final Player player = e.getPlayer();
+
+        final Entity t = e.getPlayer().getVehicle();
+        if (t instanceof ArmorStand) {
+            e.getPlayer().leaveVehicle();
+            check(t);
+        }
+
         e.setQuitMessage("§c- " + Utils.getDisplayName(player));
         beList.remove(player);
     }
@@ -468,6 +489,46 @@ public final class Main extends JavaPlugin implements Listener {
     public void onPlayerInteract(final PlayerInteractEvent e) {
         if (e.getAction() == Action.PHYSICAL && e.getClickedBlock() != null &&
                 e.getClickedBlock().getType() == Material.FARMLAND) e.setCancelled(true);
+
+
+        final Block b = e.getClickedBlock();
+        final Player p = e.getPlayer();
+        if (p.getGameMode() == GameMode.SPECTATOR || e.getItem() != null || e.getAction() != RIGHT_CLICK_BLOCK ||
+                b == null || (!p.isOp() && p.hasPermission("ncepu.cannotsit")) ||
+                b.getType().data != Stairs.class) return;
+        final Stairs data = (Stairs) b.getBlockData();
+        if (data.getHalf() == Bisected.Half.TOP) return;
+        final Location l = b.getLocation().clone().add(0.5, -1.18, 0.5);
+        final Collection<ArmorStand> entities = l.getNearbyEntitiesByType(ArmorStand.class, 0.5, 0.5, 0.5);
+        int i = entities.size();
+        if (i > 0) {
+            for (ArmorStand it : entities) if (!check(it)) i--;
+            if (i > 0) return;
+        }
+        switch (data.getFacing()) {
+            case SOUTH: l.setYaw(180); break;
+            case EAST: l.setYaw(90); break;
+            case WEST: l.setYaw(270); break;
+        }
+
+        final ArmorStand a = (ArmorStand) b.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+        a.setAI(false);
+        a.setCustomName(CHAIRS_NAME);
+        a.setCanMove(false);
+        a.setBasePlate(false);
+        a.setCanTick(false);
+        a.setVisible(false);
+        a.setCanPickupItems(false);
+        a.setPassenger(p);
+        chair_list.add(a);
+    }
+
+
+    @EventHandler
+    void onEntityDismount(final EntityDismountEvent e) {
+        final Entity l = e.getDismounted();
+        final String name = l.getCustomName();
+        if (l instanceof ArmorStand && name != null && name.equals(CHAIRS_NAME)) leaveChair(l, e.getEntity());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -898,5 +959,37 @@ public final class Main extends JavaPlugin implements Listener {
     public boolean isAfking(final Player player) {
         final Pair<Location, Long> pair = afkPlayers.get(player);
         return pair != null && pair.right < System.currentTimeMillis();
+    }
+
+
+    private void leaveChair(final Entity l, @Nullable final Entity p) {
+        //noinspection SuspiciousMethodCalls
+        chair_list.remove(l);
+        l.remove();
+        getServer().getScheduler().runTaskLater(this, () -> {
+            final Entity p2 = p == null ? l.getPassenger() : p;
+            if (p2 == null) return;
+            p2.teleport(p2.getLocation().add(0.0, 0.5, 0.0));
+        }, 1);
+    }
+
+    private boolean check(final Entity it) {
+        final String name = it.getCustomName();
+        final Entity p = it.getPassenger();
+        if (name != null && name.equals(CHAIRS_NAME)) {
+            if (p != null && p.getVehicle() == it && it.getLocation().clone().add(-0.5, 1.18, -0.5)
+                    .getBlock().getType().data == Stairs.class) return true;
+            it.remove();
+            //noinspection SuspiciousMethodCalls
+            chair_list.remove(it);
+        }
+        return false;
+    }
+
+    private ArrayList<ArmorStand> getChairsNearBy(final Location l) {
+        final Collection<ArmorStand> entities = l.getNearbyEntitiesByType(ArmorStand.class, 0.5, 0.5, 0.5);
+        final ArrayList<ArmorStand> list = new ArrayList<>();
+        for (ArmorStand it : entities) if (check(it)) list.add(it);
+        return list;
     }
 }
