@@ -141,6 +141,8 @@ public final class Main extends JavaPlugin implements Listener {
     private static final DecimalFormat df = new DecimalFormat("0.0");
     private static final Random RANDOM = new Random();
     private static final JsonParser PARSER = new JsonParser();
+
+    public static final SomeItems SOMEITEMS = new SomeItems();
     private World nether, world, theEnd;
     private final Set<Player> beList = Collections.newSetFromMap(new WeakHashMap<>());
     private final Set<Player> warning = Collections.newSetFromMap(new WeakHashMap<>());
@@ -422,6 +424,7 @@ public final class Main extends JavaPlugin implements Listener {
         p.sendMessage(Constants.JOIN_MESSAGE_HEADER);
         p.sendMessage("  §a当前在线玩家: §7" + s.getOnlinePlayers().size() +
                 "                     §a当前TPS: " + (int) s.getTPS()[0]);
+
         p.sendMessage(Constants.JOIN_MESSAGES);
         p.sendMessage(Constants.JOIN_MESSAGE1);
         p.sendMessage(Constants.JOIN_MESSAGE_FOOTER);
@@ -641,7 +644,7 @@ public final class Main extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerLogin(final PlayerLoginEvent e) {
-        if (e.getResult() == PlayerLoginEvent.Result.ALLOWED && e.getHostname().contains("apisium.cn")) warning.add(e.getPlayer());
+        if (e.getResult() == PlayerLoginEvent.Result.ALLOWED) warning.add(e.getPlayer());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -827,12 +830,14 @@ public final class Main extends JavaPlugin implements Listener {
     }
 
     private boolean checkTrapChest(final Location loc) {
-        return loc.getWorld() == world && (Math.pow(loc.getBlockX() + 202, 2) +
-                Math.pow(loc.getBlockY() - 65, 2) + Math.pow(loc.getBlockZ() - 219, 2) <= 4);
+//        return loc.getWorld() == world && (Math.pow(loc.getBlockX() + 202, 2) +
+//                Math.pow(loc.getBlockY() - 65, 2) + Math.pow(loc.getBlockZ() - 219, 2) <= 4);
+        return false;
     }
 
     private boolean checkTrapChestExact(final Location loc) {
-        return loc != null && loc.getWorld() == world && loc.getBlockX() == -202 && loc.getBlockY() == 65 &&loc.getBlockZ() == 219;
+//        return loc != null && loc.getWorld() == world && loc.getBlockX() == -202 && loc.getBlockY() == 65 &&loc.getBlockZ() == 219;
+        return false;
     }
 
     @EventHandler(ignoreCancelled = true)

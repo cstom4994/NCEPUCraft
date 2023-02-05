@@ -21,7 +21,7 @@ public final class Constants {
     public static final String JOIN_MESSAGE_HEADER = "§b§m                       §r §a[§eNCEPUCraft§a] §b§m                      §r";
     public static final String JOIN_MESSAGE1 = "  §c由于服务器没有领地插件, 请不要随意拿取他人物品, 否则会直接封禁!";
     public static final String JOIN_MESSAGE_FOOTER = "§b§m                                                          §r\n\n";
-    public static final TextComponent[] JOIN_MESSAGES = new TextComponent[3];
+    public static final TextComponent[] JOIN_MESSAGES = new TextComponent[5];
 
     public static final TextComponent[] RULES = new TextComponent[6];
     public static final HoverEvent AT = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{ new TextComponent("§f点击可以直接 §a@ §f该玩家") }),
@@ -55,6 +55,13 @@ public final class Constants {
         c.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://jq.qq.com/?wv=1027&k=Wzlekp2K"));
 
         JOIN_MESSAGES[2] = new TextComponent("      ");
+
+        JOIN_MESSAGES[3] = new TextComponent("  §b服务器最新公告可以点击 ");
+
+        c = JOIN_MESSAGES[4] = new TextComponent("[查看]");
+        c.setColor(ChatColor.BLUE);
+        c.setUnderlined(true);
+        c.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://docs.qq.com/doc/DRHlBR2NIeERpdFB6"));
 
 
         RULES[0] = new TextComponent("  §b欢迎您来到 §eNCEPUCraft §a!\n  §e您需要扫描您手中的二维码或点击 ");
