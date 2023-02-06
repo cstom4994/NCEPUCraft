@@ -81,10 +81,12 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @ApiVersion(ApiVersion.Target.v1_13)
 @Permission(name = "ncepu.show", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.explode")
+@Permission(name = "ncepu.endplatform")
 @Permission(name = "ncepu.rsd")
 @Permission(name = "ncepu.notdeatheffect")
 @Command(name = "show", permission = "ncepu.show")
 @Command(name = "explode", permission = "ncepu.explode")
+@Command(name = "endplatform", permission = "ncepu.endplatform")
 @Command(name = "rsd", permission = "ncepu.rsd")
 @Command(name = "welcome", aliases = "w")
 @Command(name = "bedrock", aliases = "be")
@@ -175,6 +177,9 @@ public final class Main extends JavaPlugin implements Listener {
     private final WeakHashMap<Player, Long> delays = new WeakHashMap<>();
     private BukkitTask countdownTask;
 
+    private final EndPlatform endPlatform = new EndPlatform();
+
+
     {
         INSTANCE = this;
     }
@@ -185,12 +190,15 @@ public final class Main extends JavaPlugin implements Listener {
         if (!getDataFolder().exists()) getDataFolder().mkdir();
         final Server s = getServer();
         final PluginManager m = s.getPluginManager();
+
         final AntiExplode antiExplode = new AntiExplode();
         final Rules rules = new Rules(this);
+
         m.registerEvents(antiExplode, this);
         m.registerEvents(rules, this);
         m.registerEvents(this, this);
         registerCommand("explode", antiExplode);
+        registerCommand("endplatform", endPlatform);
         registerCommand("show", new ShowItem());
         registerCommand("rsd", new RedStoneDetection(this));
         registerCommand("acceptrule", rules);
@@ -555,7 +563,7 @@ public final class Main extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPortalCreate(final PortalCreateEvent e) {
-        if (e.getReason() == PortalCreateEvent.CreateReason.END_PLATFORM) e.setCancelled(true);
+        if (endPlatform.flag && e.getReason() == PortalCreateEvent.CreateReason.END_PLATFORM) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -727,12 +735,12 @@ public final class Main extends JavaPlugin implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(final BlockBreakEvent e) {
         if (e.getPlayer().isOp()) return;
-        if (checkTrapChestExact(e.getBlock().getLocation())) {
-            Player player = e.getPlayer();
-            getServer().broadcastMessage("§c玩家 §f" + player.getName() + " §c正在尝试从出生点钻石箱中取出物品!!");
-            player.banPlayer("§c不要尝试偷盗! 解封请进入QQ群: 760836917");
-            e.setCancelled(true);
-        } else if (checkTrapChest(e.getBlock().getLocation())) e.setCancelled(true);
+//        if (checkTrapChestExact(e.getBlock().getLocation())) {
+//            Player player = e.getPlayer();
+//            getServer().broadcastMessage("§c玩家 §f" + player.getName() + " §c正在尝试从出生点钻石箱中取出物品!!");
+//            player.banPlayer("§c不要尝试偷盗! 解封请进入QQ群: 760836917");
+//            e.setCancelled(true);
+//        } else if (checkTrapChest(e.getBlock().getLocation())) e.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -744,13 +752,13 @@ public final class Main extends JavaPlugin implements Listener {
     public void onInventoryClick(final InventoryClickEvent e) {
         if (e.getWhoClicked().isOp()) return;
         final InventoryHolder holder = e.getView().getTopInventory().getHolder();
-        if (holder instanceof Chest && e.getWhoClicked() instanceof Player) {
-            if (e.getClickedInventory() == e.getView().getTopInventory() && checkTrapChestExact(((Chest) holder).getLocation())) {
-                Player player = (Player) e.getWhoClicked();
-                getServer().broadcastMessage("§c玩家 §f" + player.getName() + " §c正在尝试从出生点钻石箱中取出物品!!");
-                player.banPlayer("§c不要尝试偷盗! 解封请进入QQ群: 760836917");
-            }
-        }
+//        if (holder instanceof Chest && e.getWhoClicked() instanceof Player) {
+//            if (e.getClickedInventory() == e.getView().getTopInventory() && checkTrapChestExact(((Chest) holder).getLocation())) {
+//                Player player = (Player) e.getWhoClicked();
+//                getServer().broadcastMessage("§c玩家 §f" + player.getName() + " §c正在尝试从出生点钻石箱中取出物品!!");
+//                player.banPlayer("§c不要尝试偷盗! 解封请进入QQ群: 760836917");
+//            }
+//        }
     }
 
     @EventHandler(ignoreCancelled = true)

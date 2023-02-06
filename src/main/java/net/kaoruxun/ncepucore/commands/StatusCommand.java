@@ -60,7 +60,7 @@ public final class StatusCommand extends BasicCommand {
                         c.get(Calendar.DAY_OF_YEAR) - 1,
                         FORMAT1.format(date),
                         Bukkit.getVersion(),
-                        (runtime.maxMemory() - runtime.freeMemory()) / MB,
+                        (runtime.totalMemory() - runtime.freeMemory()) / MB,
                         runtime.totalMemory() / GB,
                         runtime.maxMemory() / GB,
                         Bukkit.getTickTimes()[0] / MS,
