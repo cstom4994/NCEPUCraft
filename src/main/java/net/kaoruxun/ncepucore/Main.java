@@ -90,7 +90,6 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @Command(name = "rsd", permission = "ncepu.rsd")
 @Command(name = "welcome", aliases = "w")
 @Command(name = "bedrock", aliases = "be")
-@Command(name = "toggle")
 @Command(name = "acceptrule")
 @Command(name = "denyrule")
 
@@ -100,6 +99,7 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @Command(name = "delwarp", permission = "ncepu.warp.del")
 @Command(name = "disrobe", permission = "ncepu.disrobe")
 @Command(name = "tpcancel")
+@Command(name = "toggle", permission = "ncepu.toggle")
 @Command(name = "home", permission = "ncepu.home")
 @Command(name = "warp", permission = "ncepu.warp")
 @Command(name = "mute", permission = "ncepu.mute")
@@ -109,7 +109,6 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @Command(name = "spawn", permission = "ncepu.spawn")
 @Command(name = "status", permission = "ncepu.status")
 @Command(name = "sudo", permission = "ncepu.sudo")
-@Command(name = "toggle", permission = "ncepu.toggle")
 @Command(name = "tpaall", permission = "ncepu.tpaall")
 @Command(name = "tpaccept")
 @Command(name = "tpa", permission = "ncepu.tpa")
@@ -117,6 +116,7 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @Command(name = "tphere", permission = "ncepu.tphere")
 @Command(name = "freeze", permission = "ncepu.freeze")
 @Command(name = "test", permission = "ncepu.test")
+@Command(name = "here", permission = "ncepu.here")
 @Permission(name = "ncepu.afk", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.spawn", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.home", defaultValue = PermissionDefault.TRUE)
@@ -128,6 +128,7 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @Permission(name = "ncepu.status", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.disrobe", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.warp", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "ncepu.here", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "ncepu.others")
 @Permission(name = "ncepu.sudo.avoid")
 @Permission(name = "ncepu.immediate")
@@ -204,10 +205,6 @@ public final class Main extends JavaPlugin implements Listener {
         registerCommand("acceptrule", rules);
         registerCommand("welcome", new Welcome());
         registerCommand("bedrock", this);
-        registerCommand("toggle", (a, b, c, d) -> {
-            a.sendMessage("§c模式切换命令已更改为 §e/gamemode§c. 也可使用 §eF3 + N §c进行切换.");
-            return true;
-        });
 
         world = s.getWorld("world");
         nether = s.getWorld("world_nether");
@@ -255,7 +252,8 @@ public final class Main extends JavaPlugin implements Listener {
                     TpaCommand.class,
                     TpDenyCommand.class,
                     TpHereCommand.class,
-                    TestCommand.class
+                    TestCommand.class,
+                    HereCommand.class
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -401,13 +399,15 @@ public final class Main extends JavaPlugin implements Listener {
     @SuppressWarnings("NullableProblems")
     @Override
     public boolean onCommand(final CommandSender sender, final org.bukkit.command.Command command, final String label, final String[] args) {
-        if (!command.getName().equalsIgnoreCase("bedrock") || !(sender instanceof Player)) return false;
-        if (beList.contains(sender)) {
-            beList.remove(sender);
-            sender.sendMessage("§a您当前已离开了 Bedrock 模式!");
-        } else {
-            beList.add((Player) sender);
-            sender.sendMessage("§a您已进入 Bedrock 模式!");
+        if (!(sender instanceof Player)) return false;
+        if (command.getName().equalsIgnoreCase("bedrock")) {
+            if (beList.contains(sender)) {
+                beList.remove(sender);
+                sender.sendMessage("§a您当前已离开了 Bedrock 模式!");
+            } else {
+                beList.add((Player) sender);
+                sender.sendMessage("§a您已进入 Bedrock 模式!");
+            }
         }
         return true;
     }

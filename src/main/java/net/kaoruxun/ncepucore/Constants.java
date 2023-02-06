@@ -18,9 +18,9 @@ public final class Constants {
 
     public static final String PLAYER_HEADER = "§b§m          §r §a[§eNCEPUCraft§a] §b§m          \n§aQQ 群: §7760836917\n§r";
 
-    public static final String JOIN_MESSAGE_HEADER = "§b§m                       §r §a[§eNCEPUCraft§a] §b§m                      §r";
+    public static final String JOIN_MESSAGE_HEADER = "§b§m                    §r §a[§eNCEPUCraft§a] §b§m                   §r";
     public static final String JOIN_MESSAGE1 = "  §c由于服务器没有领地插件, 请不要随意拿取他人物品, 否则会直接封禁!";
-    public static final String JOIN_MESSAGE_FOOTER = "§b§m                                                          §r\n\n";
+    public static final String JOIN_MESSAGE_FOOTER = "§b§m                                                         §r\n\n";
     public static final TextComponent[] JOIN_MESSAGES = new TextComponent[5];
 
     public static final TextComponent[] RULES = new TextComponent[6];
