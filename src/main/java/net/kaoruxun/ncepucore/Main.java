@@ -499,11 +499,31 @@ public final class Main extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    private static final Material FARMLAND = EnumUtils.oneOf(Material.class,
+            "FARMLAND", "SOIL");
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityInteract(EntityInteractEvent e) {
+        Block block = e.getBlock();
+        if (block.getType() == FARMLAND) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteract(final PlayerInteractEvent e) {
         if (e.getAction() == Action.PHYSICAL && e.getClickedBlock() != null &&
                 e.getClickedBlock().getType() == Material.FARMLAND) e.setCancelled(true);
 
+        switch (e.getAction()) {
+            case PHYSICAL: {
+                Block block = e.getClickedBlock();
+                if (block.getType() == FARMLAND) {
+                    e.setCancelled(true);
+                }
+                break;
+            }
+        }
 
         final Block b = e.getClickedBlock();
         final Player p = e.getPlayer();
