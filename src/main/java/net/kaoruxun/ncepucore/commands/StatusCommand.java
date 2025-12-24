@@ -1,7 +1,6 @@
 package net.kaoruxun.ncepucore.commands;
 
 import net.kaoruxun.ncepucore.Main;
-import org.apache.commons.lang.ObjectUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -26,8 +25,9 @@ public final class StatusCommand extends BasicCommand {
     private final static Runtime runtime = Runtime.getRuntime();
     private final static RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
     private final World WORLD = Objects.requireNonNull(instance.getServer().getWorld("world"));
-    private final World NETHER = (World) ObjectUtils.defaultIfNull(instance.getServer().getWorld("world_nether"), WORLD);
-    private final World END = (World) ObjectUtils.defaultIfNull(instance.getServer().getWorld("world_the_end"), WORLD);
+    // 使用 JDK 自带的 Objects.requireNonNullElse 替代 commons-lang 的 ObjectUtils.defaultIfNull
+    private final World NETHER = Objects.requireNonNullElse(instance.getServer().getWorld("world_nether"), WORLD);
+    private final World END = Objects.requireNonNullElse(instance.getServer().getWorld("world_the_end"), WORLD);
 
     static {
         final TimeZone tz = TimeZone.getTimeZone("GMT+00:00");

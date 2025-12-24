@@ -26,16 +26,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
 
-    compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT'
 
     compileOnly 'io.netty:netty-buffer:4.1.50.Final'
 
     // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
     implementation group: 'org.iq80.leveldb', name: 'leveldb', version: '0.12'
 
-    annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+    annotationProcessor 'io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT'
 
 //    compile('org.iq80.leveldb:leveldb:0.12') {
 //        exclude group: 'com.google.guava'
@@ -43,7 +42,7 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 jar {
@@ -52,6 +51,6 @@ jar {
     }
 }
 
-//tasks.withType(JavaCompile) {
-//    options.encoding = "UTF-8"
-//}
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}

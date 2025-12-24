@@ -82,30 +82,6 @@ public final class Utils {
         DatabaseSingleton.INSTANCE.setPlayerData(player, "lastLocation", Serializer.serializeLocation(loc));
     }
 
-    private static final World world = Bukkit.getWorld("world");
-    private static final Object nmsWorld;
-    private static Method getX, getY, getZ, toRodLightingLocation;
-    private static Constructor<?> blockPositionConstructor;
-
-    static {
-        Object nmsWorld0 = null;
-        try {
-            assert world != null;
-            final Class<?> CraftWorld = world.getClass();
-            nmsWorld0 = CraftWorld.getMethod("getHandle").invoke(world);
-            toRodLightingLocation = nmsWorld0.getClass().getDeclaredMethod("a", Class.forName("net.minecraft.core.BlockPosition"));
-            toRodLightingLocation.setAccessible(true);
-            var bp = Class.forName("net.minecraft.core.BlockPosition");
-            getX = bp.getMethod("getX");
-            getY = bp.getMethod("getY");
-            getZ = bp.getMethod("getZ");
-            blockPositionConstructor = bp.getConstructor(double.class, double.class, double.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        nmsWorld = nmsWorld0;
-    }
-
     private static final BlockFace[] blockFaces = BlockFace.values();
 
     public static void registerCommand(final String name, final CommandExecutor e) {
@@ -146,7 +122,8 @@ public final class Utils {
         }
         if (i > 0) {
             initBlock.getWorld().playEffect(initBlock.getLocation(), Effect.EXTINGUISH, null);
-            initBlock.getWorld().spawnParticle(Particle.SMOKE_LARGE, initBlock.getLocation().add(0.5, 1, 0.5), 10, 0.2, 0.5, 0.2, 0);
+            // 1.21 起粒子枚举名称与 Mojang 同步 SMOKE_LARGE 替换为 LARGE_SMOKE
+            initBlock.getWorld().spawnParticle(Particle.LARGE_SMOKE, initBlock.getLocation().add(0.5, 1, 0.5), 10, 0.2, 0.5, 0.2, 0);
             if (plugin == null) initBlock.setType(Material.CRYING_OBSIDIAN);
             else plugin.getServer().getScheduler().runTask(plugin, () -> initBlock.setType(Material.CRYING_OBSIDIAN));
         }
@@ -172,15 +149,9 @@ public final class Utils {
         };
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static void strikeLightning(Location loc) {
-        if (loc.getWorld() != world) return;
-        try {
-            var newLoc = toRodLightingLocation.invoke(nmsWorld,
-                    blockPositionConstructor.newInstance(loc.getX(), loc.getY(), loc.getZ()));
-            loc = new Location(loc.getWorld(), (int) getX.invoke(newLoc), (int) getY.invoke(newLoc),
-                    (int) getZ.invoke(newLoc));
-        } catch (Exception e) { e.printStackTrace(); }
+        World world = loc.getWorld();
+        if (world == null) return;
         world.strikeLightning(loc);
     }
 
@@ -196,13 +167,13 @@ public final class Utils {
                     NETHERITE_SCRAP, NETHERITE_SHOVEL, NETHERITE_SWORD, ANCIENT_DEBRIS, GOLD_BLOCK, GOLD_INGOT,
                     GOLDEN_AXE, GOLDEN_BOOTS, GOLDEN_CHESTPLATE, GOLDEN_HELMET, GOLDEN_HOE, GOLDEN_HORSE_ARMOR,
                     GOLDEN_LEGGINGS, GOLDEN_SWORD, GOLDEN_PICKAXE, GOLDEN_SHOVEL, BUCKET, FLINT_AND_STEEL, MINECART,
-                    HOPPER_MINECART, CHEST_MINECART, FURNACE_MINECART, TNT_MINECART, CHAIN, CHAINMAIL_BOOTS,
-                    CHAINMAIL_CHESTPLATE, CHAINMAIL_HELMET, CHAINMAIL_LEGGINGS, HOPPER, ANVIL, CHIPPED_ANVIL,
-                    DAMAGED_ANVIL, SHEARS, CAULDRON, COPPER_BLOCK, COPPER_INGOT, CUT_COPPER, CUT_COPPER_SLAB,
-                    CUT_COPPER_STAIRS, EXPOSED_CUT_COPPER_STAIRS, EXPOSED_COPPER, EXPOSED_CUT_COPPER,
-                    EXPOSED_CUT_COPPER_SLAB, RAW_COPPER, RAW_COPPER_BLOCK, OXIDIZED_COPPER, OXIDIZED_CUT_COPPER,
-                    OXIDIZED_CUT_COPPER_SLAB, OXIDIZED_CUT_COPPER_STAIRS, WEATHERED_COPPER, WEATHERED_CUT_COPPER_SLAB,
-                    WEATHERED_CUT_COPPER_STAIRS, LIGHTNING_ROD -> true;
+                    HOPPER_MINECART, CHEST_MINECART, FURNACE_MINECART, TNT_MINECART,
+                    CHAINMAIL_BOOTS, CHAINMAIL_CHESTPLATE, CHAINMAIL_HELMET, CHAINMAIL_LEGGINGS,
+                    HOPPER, ANVIL, CHIPPED_ANVIL, DAMAGED_ANVIL, SHEARS, CAULDRON, COPPER_BLOCK, COPPER_INGOT,
+                    CUT_COPPER, CUT_COPPER_SLAB, CUT_COPPER_STAIRS, EXPOSED_CUT_COPPER_STAIRS, EXPOSED_COPPER,
+                    EXPOSED_CUT_COPPER, EXPOSED_CUT_COPPER_SLAB, RAW_COPPER, RAW_COPPER_BLOCK, OXIDIZED_COPPER,
+                    OXIDIZED_CUT_COPPER, OXIDIZED_CUT_COPPER_SLAB, OXIDIZED_CUT_COPPER_STAIRS, WEATHERED_COPPER,
+                    WEATHERED_CUT_COPPER_SLAB, WEATHERED_CUT_COPPER_STAIRS, LIGHTNING_ROD -> true;
             default -> false;
         };
     }

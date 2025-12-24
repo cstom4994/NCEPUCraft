@@ -35,12 +35,6 @@ import org.bukkit.inventory.*;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.java.annotation.command.Command;
-import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
-import org.bukkit.plugin.java.annotation.plugin.Description;
-import org.bukkit.plugin.java.annotation.plugin.Plugin;
-import org.bukkit.plugin.java.annotation.plugin.author.Author;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -59,7 +53,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.spigotmc.event.entity.EntityDismountEvent;
+import org.bukkit.event.entity.EntityDismountEvent;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -71,73 +65,9 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static net.kaoruxun.ncepucore.utils.Utils.registerCommand;
 import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 
 // Based on https://github.com/neko-craft/NekoCore by Shirasawa
-@Plugin(name = "NCEPUCore", version = "1.0")
-@Description("An basic plugin used in NCEPUCraft.")
-@Author("KaoruXun")
-@ApiVersion(ApiVersion.Target.v1_13)
-@Permission(name = "ncepu.show", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.explode")
-@Permission(name = "ncepu.endplatform")
-@Permission(name = "ncepu.rsd")
-@Permission(name = "ncepu.notdeatheffect")
-@Command(name = "show", permission = "ncepu.show")
-@Command(name = "explode", permission = "ncepu.explode")
-@Command(name = "endplatform", permission = "ncepu.endplatform")
-@Command(name = "rsd", permission = "ncepu.rsd")
-@Command(name = "welcome", aliases = "w")
-@Command(name = "bedrock", aliases = "be")
-@Command(name = "acceptrule")
-@Command(name = "denyrule")
-
-@Command(name = "afk", permission = "ncepu.afk")
-@Command(name = "back", permission = "ncepu.back")
-@Command(name = "db", permission = "ncepu.db")
-@Command(name = "delwarp", permission = "ncepu.warp.del")
-@Command(name = "disrobe", permission = "ncepu.disrobe")
-@Command(name = "tpcancel")
-@Command(name = "toggle", permission = "ncepu.toggle")
-@Command(name = "home", permission = "ncepu.home")
-@Command(name = "warp", permission = "ncepu.warp")
-@Command(name = "mute", permission = "ncepu.mute")
-@Command(name = "othershome", permission = "ncepu.others")
-@Command(name = "sethome", permission = "ncepu.home")
-@Command(name = "setwarp", permission = "ncepu.warp.set")
-@Command(name = "spawn", permission = "ncepu.spawn")
-@Command(name = "status", permission = "ncepu.status")
-@Command(name = "sudo", permission = "ncepu.sudo")
-@Command(name = "tpaall", permission = "ncepu.tpaall")
-@Command(name = "tpaccept")
-@Command(name = "tpa", permission = "ncepu.tpa")
-@Command(name = "tpdeny")
-@Command(name = "tphere", permission = "ncepu.tphere")
-@Command(name = "freeze", permission = "ncepu.freeze")
-@Command(name = "test", permission = "ncepu.test")
-@Command(name = "here", permission = "ncepu.here")
-@Permission(name = "ncepu.afk", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.spawn", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.home", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.tpa", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.tphere", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.back", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.toggle", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.tpaall", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.status", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.disrobe", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.warp", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.here", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "ncepu.others")
-@Permission(name = "ncepu.sudo.avoid")
-@Permission(name = "ncepu.immediate")
-@Permission(name = "ncepu.sudo")
-@Permission(name = "ncepu.mute")
-@Permission(name = "ncepu.db")
-@Permission(name = "ncepu.freeze")
-@Permission(name = "ncepu.test")
-
 @SuppressWarnings({"unused", "deprecation"})
 public final class Main extends JavaPlugin implements Listener {
     private int i = 0;
@@ -198,13 +128,13 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(antiExplode, this);
         m.registerEvents(rules, this);
         m.registerEvents(this, this);
-        registerCommand("explode", antiExplode);
-        registerCommand("endplatform", endPlatform);
-        registerCommand("show", new ShowItem());
-        registerCommand("rsd", new RedStoneDetection(this));
-        registerCommand("acceptrule", rules);
-        registerCommand("welcome", new Welcome());
-        registerCommand("bedrock", this);
+        Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
+        Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
+        Objects.requireNonNull(getCommand("show")).setExecutor(new ShowItem());
+        Objects.requireNonNull(getCommand("rsd")).setExecutor(new RedStoneDetection(this));
+        Objects.requireNonNull(getCommand("acceptrule")).setExecutor(rules);
+        Objects.requireNonNull(getCommand("welcome")).setExecutor(new Welcome());
+        Objects.requireNonNull(getCommand("bedrock")).setExecutor(this);
 
         world = s.getWorld("world");
         nether = s.getWorld("world_nether");
@@ -294,8 +224,13 @@ public final class Main extends JavaPlugin implements Listener {
                         getServer().shutdown();
                         return;
                     }
+                    double mspt = 0.0;
+                    long[] tickTimes = s.getTickTimes();
+                    if (tickTimes.length > 0) {
+                        mspt = tickTimes[0] / 1000000.0;
+                    }
                     final String footer = "\n§aTPS: §7" + df.format(tps) + " §aMSPT: §7" +
-                            df.format(s.getTickTimes()[0] / 1000000.0) + "\n§b§m                                      ";
+                            df.format(mspt) + "\n§b§m                                      ";
                     final ArrayList<Player> list = new ArrayList<>();
                     s.getOnlinePlayers().forEach(it -> {
                         it.setPlayerListFooter(footer);
@@ -347,7 +282,7 @@ public final class Main extends JavaPlugin implements Listener {
                             }
                         });
                         getServer().getScheduler().runTask(this, () -> world.getEntities().forEach(it -> {
-                            if (it.getType() == EntityType.DROPPED_ITEM) {
+                            if (it.getType() == EntityType.ITEM) {
                                 if (!Utils.isConductive(((Item) it).getItemStack().getType())) return;
                             } else if (it instanceof Monster) {
                                 EntityEquipment inv = ((LivingEntity) it).getEquipment();
@@ -474,10 +409,11 @@ public final class Main extends JavaPlugin implements Listener {
                     int bound = Math.round(((float) killer
                             .getInventory()
                             .getItemInMainHand()
-                            .getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS)) / 2);
+                            .getEnchantmentLevel(Enchantment.LOOTING)) / 2);
                     if (bound > 0) count += RANDOM.nextInt(bound);
                 }
-                drops.add(new ItemStack(Material.SCUTE, count));
+                // 1.21 中物品名与 Mojang 同步
+                drops.add(new ItemStack(Material.TURTLE_SCUTE, count));
             }
             case RAVAGER -> {
                 drops.clear();
@@ -529,7 +465,7 @@ public final class Main extends JavaPlugin implements Listener {
         final Player p = e.getPlayer();
         if (p.getGameMode() == GameMode.SPECTATOR || e.getItem() != null || e.getAction() != RIGHT_CLICK_BLOCK ||
                 b == null || (!p.isOp() && p.hasPermission("ncepu.cannotsit")) ||
-                b.getType().data != Stairs.class) return;
+                !(b.getBlockData() instanceof Stairs)) return;
         final Stairs data = (Stairs) b.getBlockData();
         if (data.getHalf() == Bisected.Half.TOP) return;
         final Location l = b.getLocation().clone().add(0.5, -1.18, 0.5);
@@ -553,7 +489,8 @@ public final class Main extends JavaPlugin implements Listener {
         a.setCanTick(false);
         a.setVisible(false);
         a.setCanPickupItems(false);
-        a.setPassenger(p);
+        // 使用新版乘骑 API
+        a.addPassenger(p);
         chair_list.add(a);
     }
 
@@ -627,7 +564,7 @@ public final class Main extends JavaPlugin implements Listener {
         for (int i = 0; i < 2 && RANDOM.nextInt(10) >= 7; i++) {
             PotionEffectType type = Constants.EFFECTS[RANDOM.nextInt(Constants.EFFECTS.length - 1)];
             entity.addPotionEffect(new PotionEffect(type, 144000,
-                            type == PotionEffectType.DAMAGE_RESISTANCE || RANDOM.nextBoolean() ? 1 : 2));
+                            type == PotionEffectType.RESISTANCE || RANDOM.nextBoolean() ? 1 : 2));
         }
     }
 
@@ -715,6 +652,8 @@ public final class Main extends JavaPlugin implements Listener {
             }
             if (ad != null) Utils.giveAdvancement(ad, p);
         }
+        // 1.21 起 PLAY_ONE_MINUTE 被 PLAY_TIME 取代 这里兼容新统计项
+        // 使用旧统计项名称 1.21 仍保留 PLAY_ONE_MINUTE
         if (p.hasPermission("ncepu.notdeatheffect") || p.getStatistic(Statistic.PLAY_ONE_MINUTE) < 20 * 60 * 40) return;
         deathRecords.put(p.getUniqueId(), new Object[] { p.getExhaustion(), p.getSaturation(), p.getFoodLevel() });
     }
@@ -729,7 +668,8 @@ public final class Main extends JavaPlugin implements Listener {
             p.setExhaustion((float) obj[0]);
             p.setSaturation((float) obj[1]);
             p.setFoodLevel((int) obj[2]);
-            p.setHealth(Objects.requireNonNull(p.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getDefaultValue() / 2);
+            // 避免依赖已重命名的属性常量 直接使用实体自身的最大生命值
+            p.setHealth(p.getMaxHealth() / 2);
             p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 20 * 30, 1, true, false));
             deathRecords.remove(id);
         }
@@ -798,8 +738,8 @@ public final class Main extends JavaPlugin implements Listener {
                     break;
                 } else return;
             case CREEPER:
-            case ENDER_CRYSTAL:
-            case LIGHTNING:
+            case END_CRYSTAL:
+            case LIGHTNING_BOLT:
             case FIREBALL:
                 break;
             default: return;
@@ -1003,7 +943,14 @@ public final class Main extends JavaPlugin implements Listener {
         chair_list.remove(l);
         l.remove();
         getServer().getScheduler().runTaskLater(this, () -> {
-            final Entity p2 = p == null ? l.getPassenger() : p;
+            final Entity p2;
+            if (p != null) {
+                p2 = p;
+            } else {
+                // 新 API 使用 getPassengers()
+                var passengers = l.getPassengers();
+                p2 = passengers.isEmpty() ? null : passengers.get(0);
+            }
             if (p2 == null) return;
             p2.teleport(p2.getLocation().add(0.0, 0.5, 0.0));
         }, 1);
@@ -1011,10 +958,11 @@ public final class Main extends JavaPlugin implements Listener {
 
     private boolean check(final Entity it) {
         final String name = it.getCustomName();
-        final Entity p = it.getPassenger();
         if (name != null && name.equals(CHAIRS_NAME)) {
+            final var passengers = it.getPassengers();
+            final Entity p = passengers.isEmpty() ? null : passengers.get(0);
             if (p != null && p.getVehicle() == it && it.getLocation().clone().add(-0.5, 1.18, -0.5)
-                    .getBlock().getType().data == Stairs.class) return true;
+                    .getBlock().getBlockData() instanceof Stairs) return true;
             it.remove();
             //noinspection SuspiciousMethodCalls
             chair_list.remove(it);

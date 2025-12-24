@@ -39,10 +39,11 @@ public final class Constants {
     public static final PotionEffectType[] EFFECTS = new PotionEffectType[] {
             PotionEffectType.SPEED,
             PotionEffectType.HEALTH_BOOST,
-            PotionEffectType.INCREASE_DAMAGE,
-            PotionEffectType.JUMP,
+            // 1.21 API 中旧名称被移除 使用与 Mojang 同步的新名称
+            PotionEffectType.STRENGTH,
+            PotionEffectType.JUMP_BOOST,
             PotionEffectType.REGENERATION,
-            PotionEffectType.DAMAGE_RESISTANCE,
+            PotionEffectType.RESISTANCE,
             PotionEffectType.ABSORPTION
     };
 

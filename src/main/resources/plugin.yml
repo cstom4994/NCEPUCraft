@@ -1,0 +1,156 @@
+name: NCEPUCore
+main: net.kaoruxun.ncepucore.Main
+version: 1.0
+description: An basic plugin used in NCEPUCraft.
+api-version: '1.21'
+author: KaoruXun
+
+commands:
+  show:
+    description: Show item in hand.
+    permission: ncepu.show
+  explode:
+    description: Toggle explosion protection.
+    permission: ncepu.explode
+  endplatform:
+    description: Toggle end platform protection.
+    permission: ncepu.endplatform
+  rsd:
+    description: Redstone detection utilities.
+    permission: ncepu.rsd
+  welcome:
+    description: Show server welcome information.
+    aliases: [w]
+  bedrock:
+    description: Toggle Bedrock mode.
+    aliases: [be]
+  acceptrule:
+    description: Accept server rules.
+  denyrule:
+    description: Deny server rules.
+
+  afk:
+    description: Toggle AFK status.
+    permission: ncepu.afk
+  back:
+    description: Teleport to last location.
+    permission: ncepu.back
+  db:
+    description: Database debug command.
+    permission: ncepu.db
+  delwarp:
+    description: Delete warp point.
+    permission: ncepu.warp.del
+  disrobe:
+    description: Strip player armor.
+    permission: ncepu.disrobe
+  tpcancel:
+    description: Cancel teleport request.
+  toggle:
+    description: Toggle personal features.
+    permission: ncepu.toggle
+  home:
+    description: Teleport to home.
+    permission: ncepu.home
+  warp:
+    description: Teleport to warp point.
+    permission: ncepu.warp
+  mute:
+    description: Mute/unmute player.
+    permission: ncepu.mute
+  othershome:
+    description: Teleport to others' home.
+    permission: ncepu.others
+  sethome:
+    description: Set home location.
+    permission: ncepu.home
+  setwarp:
+    description: Set warp point.
+    permission: ncepu.warp.set
+  spawn:
+    description: Teleport to spawn.
+    permission: ncepu.spawn
+  status:
+    description: Show player/server status.
+    permission: ncepu.status
+  sudo:
+    description: Execute command as other player.
+    permission: ncepu.sudo
+  tpaall:
+    description: Request all players to teleport.
+    permission: ncepu.tpaall
+  tpaccept:
+    description: Accept teleport request.
+  tpa:
+    description: Request teleport to another player.
+    permission: ncepu.tpa
+  tpdeny:
+    description: Deny teleport request.
+  tphere:
+    description: Request another player teleport here.
+    permission: ncepu.tphere
+  freeze:
+    description: Freeze/unfreeze player.
+    permission: ncepu.freeze
+  test:
+    description: Test command.
+    permission: ncepu.test
+  here:
+    description: Teleport here utility.
+    permission: ncepu.here
+
+permissions:
+  ncepu.show:
+    default: true
+  ncepu.explode:
+    default: op
+  ncepu.endplatform:
+    default: op
+  ncepu.rsd:
+    default: op
+  ncepu.notdeatheffect:
+    default: op
+
+  ncepu.afk:
+    default: true
+  ncepu.spawn:
+    default: true
+  ncepu.home:
+    default: true
+  ncepu.tpa:
+    default: true
+  ncepu.tphere:
+    default: true
+  ncepu.back:
+    default: true
+  ncepu.toggle:
+    default: true
+  ncepu.tpaall:
+    default: true
+  ncepu.status:
+    default: true
+  ncepu.disrobe:
+    default: true
+  ncepu.warp:
+    default: true
+  ncepu.here:
+    default: true
+
+  ncepu.others:
+    default: op
+  ncepu.sudo.avoid:
+    default: op
+  ncepu.immediate:
+    default: op
+  ncepu.sudo:
+    default: op
+  ncepu.mute:
+    default: op
+  ncepu.db:
+    default: op
+  ncepu.freeze:
+    default: op
+  ncepu.test:
+    default: op
+
+
