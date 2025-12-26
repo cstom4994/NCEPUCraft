@@ -173,6 +173,7 @@ public final class Main extends JavaPlugin implements Listener {
                     MuteCommand.class,
                     OthersHomeCommand.class,
                     WarpCommand.class,
+                    WarpsCommand.class,
                     SetHomeCommand.class,
                     SetWarpCommand.class,
                     SpawnCommand.class,

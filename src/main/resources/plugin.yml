@@ -55,6 +55,9 @@ commands:
   warp:
     description: Teleport to warp point.
     permission: ncepu.warp
+  warps:
+    description: List all warp points.
+    permission: ncepu.warp.list
   mute:
     description: Mute/unmute player.
     permission: ncepu.mute
@@ -135,6 +138,8 @@ permissions:
   ncepu.disrobe:
     default: true
   ncepu.warp:
+    default: true
+  ncepu.warp.list:
     default: true
   ncepu.here:
     default: true
