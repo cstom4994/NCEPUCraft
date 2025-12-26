@@ -128,6 +128,7 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(antiExplode, this);
         m.registerEvents(rules, this);
         m.registerEvents(this, this);
+        m.registerEvents(new TreeChopperListener(), this);
         Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
         Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
         Objects.requireNonNull(getCommand("show")).setExecutor(new ShowItem());
