@@ -109,6 +109,7 @@ public final class Main extends JavaPlugin implements Listener {
     private BukkitTask countdownTask;
 
     private final EndPlatform endPlatform = new EndPlatform();
+    private final TreeChopperListener treeChopperListener = new TreeChopperListener();
 
 
     {
@@ -128,7 +129,7 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(antiExplode, this);
         m.registerEvents(rules, this);
         m.registerEvents(this, this);
-        m.registerEvents(new TreeChopperListener(), this);
+        m.registerEvents(treeChopperListener, this);
         Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
         Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
         Objects.requireNonNull(getCommand("show")).setExecutor(new ShowItem());
@@ -184,7 +185,8 @@ public final class Main extends JavaPlugin implements Listener {
                     TpDenyCommand.class,
                     TpHereCommand.class,
                     TestCommand.class,
-                    HereCommand.class
+                    HereCommand.class,
+                    TreeBackCommand.class
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -305,6 +307,10 @@ public final class Main extends JavaPlugin implements Listener {
             }
         });
         thread.start();
+    }
+
+    public boolean rollbackLastTreeChop(Player player) {
+        return treeChopperListener.rollbackLastChop(player);
     }
 
     @Override
