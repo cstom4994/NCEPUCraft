@@ -123,6 +123,9 @@ permissions:
   ncepu.notdeatheffect:
     default: op
 
+  ncepu.carry:
+    default: true
+
   ncepu.afk:
     default: true
   ncepu.spawn:

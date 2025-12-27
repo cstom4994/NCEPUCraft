@@ -137,6 +137,7 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(this, this);
         m.registerEvents(treeChopperListener, this);
         m.registerEvents(new MotdListener(this), this);
+        m.registerEvents(new CarryEntityListener(), this);
         Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
         Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
         Objects.requireNonNull(getCommand("show")).setExecutor(new ShowItem());
