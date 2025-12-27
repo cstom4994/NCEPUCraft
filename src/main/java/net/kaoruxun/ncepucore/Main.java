@@ -71,7 +71,12 @@ import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 @SuppressWarnings({"unused", "deprecation"})
 public final class Main extends JavaPlugin implements Listener {
     private int i = 0;
-    private Thread thread;
+    private BukkitTask monitorTask;
+    private volatile boolean monitorSyncRunning = false;
+    private int monitorLoop = 0;
+    private boolean shutdownScheduled = false;
+    private double lastTps = 20.0;
+    private double lastMspt = 0.0;
     private static final HashMap<UUID, Object[]> deathRecords = new HashMap<>();
     private static final DecimalFormat df = new DecimalFormat("0.0");
     private static final Random RANDOM = new Random();
@@ -165,6 +170,7 @@ public final class Main extends JavaPlugin implements Listener {
                     AfkCommand.class,
                     BackCommand.class,
                     CancelCommand.class,
+                    CleanupCommand.class,
                     DbCommand.class,
                     DelWarpCommand.class,
                     DisrobeCommand.class,
@@ -212,63 +218,50 @@ public final class Main extends JavaPlugin implements Listener {
         }, 20, 20);
 
 
-        thread = new Thread(() -> {
-            try {
-                while (true) {
-                    final double tps = s.getTPS()[0];
+        // 监控主循环放到异步线程 但 Bukkit API(包含getTPS/setPlayerListFooter/broadcast/shutdown等)仍必须回到主线程执行
+        // 这样能保证monitor不在主线程跑循环 同时不触发Paper的线程安全问题
+        monitorTask = getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            if (monitorSyncRunning) return; // 防止主线程卡顿时积压大量同步任务
+            monitorSyncRunning = true;
+            getServer().getScheduler().runTask(this, () -> {
+                try {
+                    final Server server = getServer();
+                    final double tps = server.getTPS()[0];
+                    final double mspt = server.getTickTimes()[0] / 1_000_000.0;
+
                     if (tps < 4.5) i++;
                     else i = 0;
-                    if (i > 20) {
-                        getServer().broadcastMessage("§c服务器 TPS 低, 将在五秒后自动重启!");
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        getServer().shutdown();
-                        return;
+
+                    if (i > 20 && !shutdownScheduled) {
+                        shutdownScheduled = true;
+                        server.broadcastMessage("§c服务器TPS低");
+                        // server.getScheduler().runTaskLater(this, server::shutdown, 100L);
                     }
-                    double mspt = 0.0;
-                    long[] tickTimes = s.getTickTimes();
-                    if (tickTimes.length > 0) {
-                        mspt = tickTimes[0] / 1000000.0;
-                    }
+
                     final String footer = "\n§aTPS: §7" + df.format(tps) + " §aMSPT: §7" +
                             df.format(mspt) + "\n§b§m                                      ";
-                    final ArrayList<Player> list = new ArrayList<>();
-                    s.getOnlinePlayers().forEach(it -> {
-                        it.setPlayerListFooter(footer);
-                        final Location loc = it.getLocation();
-                        if (loc.getWorld() == world && loc.distanceSquared(spawn) > 400) list.add(it);
+
+                    final ArrayList<Player> farFromSpawn = new ArrayList<>();
+                    server.getOnlinePlayers().forEach(p -> {
+                        p.setPlayerListFooter(footer);
+                        final Location loc = p.getLocation();
+                        if (loc.getWorld() == world && spawn != null && loc.distanceSquared(spawn) > 400) farFromSpawn.add(p);
                     });
-                    if (!list.isEmpty()) s.getScheduler().runTask(this, () -> list.forEach(it -> Utils.giveAdvancement(FIRST_STEP, it)));
-                    try {
-                        s.getWorlds().forEach(it -> {
-                            final Chunk[] ch = it.getLoadedChunks();
-                            for (final Chunk c : ch) if (c.getEntities().length > 500) {
-                                s.getScheduler().runTask(this, () -> {
-                                    final Entity[] es = c.getEntities();
-                                    for (final Entity e : es) if (e instanceof Item || (e instanceof FallingBlock && !(e instanceof TNTPrimed)))
-                                        e.remove();
-                                    if (c.getEntities().length < 200) s.broadcastMessage("§c这个位置 §7(" + c.getWorld().getName() + ", " +
-                                            (c.getX() << 4) + ", " + (c.getZ() << 4) + ") §c有一大堆实体, 已被清除.");
-                                });
-                            }
-                        });
-                    } catch (final Exception ignored) { }
-                    if (world.isThundering() && world.hasStorm()) {
-                        world.getPlayers().forEach(it -> {
-                            if (it.getGameMode() != GameMode.SURVIVAL || RANDOM.nextInt(17) != 0) return;
-                            final Location loc = it.getLocation();
-                            if (it.isInRain() && RANDOM.nextInt(3) == 0) {
-                                final PlayerInventory inv = it.getInventory();
+                    if (!farFromSpawn.isEmpty()) farFromSpawn.forEach(p -> Utils.giveAdvancement(FIRST_STEP, p));
+
+                    if (world != null && world.isThundering() && world.hasStorm()) {
+                        world.getPlayers().forEach(p -> {
+                            if (p.getGameMode() != GameMode.SURVIVAL || RANDOM.nextInt(17) != 0) return;
+                            final Location loc = p.getLocation();
+                            if (p.isInRain() && RANDOM.nextInt(3) == 0) {
+                                final PlayerInventory inv = p.getInventory();
                                 if (Utils.isConductive(inv.getItemInMainHand()) ||
                                         Utils.isConductive(inv.getItemInOffHand()) ||
                                         Utils.isConductive(inv.getBoots()) ||
                                         Utils.isConductive(inv.getChestplate()) ||
                                         Utils.isConductive(inv.getLeggings()) ||
                                         Utils.isConductive(inv.getHelmet())) {
-                                    s.getScheduler().runTask(this, () -> Utils.strikeLightning(loc));
+                                    Utils.strikeLightning(loc);
                                     return;
                                 }
                             }
@@ -282,32 +275,15 @@ public final class Main extends JavaPlugin implements Listener {
                                     final Material type = block.getType();
                                     if (!(type == Material.AIR || Utils.isLeaves(type) || Utils.isLog(type))) return;
                                 }
-                                s.getScheduler().runTask(this, () -> Utils.strikeLightning(loc));
+                                Utils.strikeLightning(loc);
                             }
                         });
-                        getServer().getScheduler().runTask(this, () -> world.getEntities().forEach(it -> {
-                            if (it.getType() == EntityType.ITEM) {
-                                if (!Utils.isConductive(((Item) it).getItemStack().getType())) return;
-                            } else if (it instanceof Monster) {
-                                EntityEquipment inv = ((LivingEntity) it).getEquipment();
-                                if (!(Utils.isConductive(inv.getItemInMainHand()) ||
-                                        Utils.isConductive(inv.getItemInOffHand()) ||
-                                        Utils.isConductive(inv.getBoots()) ||
-                                        Utils.isConductive(inv.getChestplate()) ||
-                                        Utils.isConductive(inv.getLeggings()) ||
-                                        Utils.isConductive(inv.getHelmet()))) return;
-                            } else return;
-                            if (!it.isInRain() || RANDOM.nextInt(14) != 0) return;
-                            Utils.strikeLightning(it.getLocation());
-                        }));
                     }
-                    Thread.sleep(2000);
+                } finally {
+                    monitorSyncRunning = false;
                 }
-            } catch (final InterruptedException ignored) { } catch (final Exception e) {
-                e.printStackTrace();
-            }
-        });
-        thread.start();
+            });
+        }, 40L, 40L);
     }
 
     public boolean rollbackLastTreeChop(Player player) {
@@ -334,9 +310,8 @@ public final class Main extends JavaPlugin implements Listener {
         countdownTask = null;
 
         deathRecords.clear();
-        if (thread == null) return;
-        thread.interrupt();
-        thread = null;
+        if (monitorTask != null) monitorTask.cancel();
+        monitorTask = null;
     }
 
     @SuppressWarnings("NullableProblems")

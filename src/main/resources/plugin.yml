@@ -104,6 +104,9 @@ commands:
   treeback:
     description: Rollback last tree-chop chain operation.
     permission: ncepu.treeback
+  cleanup:
+    description: Scan loaded chunks and cleanup entity piles (admin only).
+    permission: ncepu.cleanup
 
 permissions:
   ncepu.show:
@@ -161,6 +164,8 @@ permissions:
   ncepu.freeze:
     default: op
   ncepu.test:
+    default: op
+  ncepu.cleanup:
     default: op
 
 
