@@ -520,32 +520,32 @@ public final class Main extends JavaPlugin implements Listener {
         if (endPlatform.flag && e.getReason() == PortalCreateEvent.CreateReason.END_PLATFORM) e.setCancelled(true);
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onRaidTrigger(final RaidTriggerEvent e) {
-        if (getServer().getTPS()[0] < 16.0) e.setCancelled(true);
-    }
+//    @EventHandler(ignoreCancelled = true)
+//    public void onRaidTrigger(final RaidTriggerEvent e) {
+//        if (getServer().getTPS()[0] < 16.0) e.setCancelled(true);
+//    }
 
     @EventHandler(ignoreCancelled = true)
     public void onEntitySpawn(final EntitySpawnEvent e) {
         switch (e.getEntityType()) {
-            case CREEPER: return;
-            case WITHER:
-            case PILLAGER:
-            case RAVAGER:
-            case EVOKER:
-            case EVOKER_FANGS:
-            case VINDICATOR:
-            case ENDERMAN:
-                if (getServer().getTPS()[0] >= 16.0) break;
+//            case CREEPER: return;
+//            case WITHER:
+//            case PILLAGER:
+//            case RAVAGER:
+//            case EVOKER:
+//            case EVOKER_FANGS:
+//            case VINDICATOR:
+//            case ENDERMAN:
+//                if (getServer().getTPS()[0] >= 16.0) break;
             case BAT:
                 e.setCancelled(true);
                 return;
-            case HUSK:
-            case ZOMBIE:
-            case DROWNED:
-            case ZOMBIE_VILLAGER:
-                if (RANDOM.nextBoolean()) ((Zombie) e.getEntity()).setShouldBurnInDay(false);
-                break;
+//            case HUSK:
+//            case ZOMBIE:
+//            case DROWNED:
+//            case ZOMBIE_VILLAGER:
+//                if (RANDOM.nextBoolean()) ((Zombie) e.getEntity()).setShouldBurnInDay(false);
+//                break;
             case VILLAGER:
                 CreatureSpawnEvent.SpawnReason reason = e.getEntity().getEntitySpawnReason();
                 if (reason == CreatureSpawnEvent.SpawnReason.CUSTOM ||
@@ -557,12 +557,12 @@ public final class Main extends JavaPlugin implements Listener {
                 }
                 return;
         }
-        if (!(e.getEntity() instanceof final Monster entity)) return;
-        for (int i = 0; i < 2 && RANDOM.nextInt(10) >= 7; i++) {
-            PotionEffectType type = Constants.EFFECTS[RANDOM.nextInt(Constants.EFFECTS.length - 1)];
-            entity.addPotionEffect(new PotionEffect(type, 144000,
-                            type == PotionEffectType.RESISTANCE || RANDOM.nextBoolean() ? 1 : 2));
-        }
+//        if (!(e.getEntity() instanceof final Monster entity)) return;
+//        for (int i = 0; i < 2 && RANDOM.nextInt(10) >= 7; i++) {
+//            PotionEffectType type = Constants.EFFECTS[RANDOM.nextInt(Constants.EFFECTS.length - 1)];
+//            entity.addPotionEffect(new PotionEffect(type, 144000,
+//                            type == PotionEffectType.RESISTANCE || RANDOM.nextBoolean() ? 1 : 2));
+//        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -787,14 +787,14 @@ public final class Main extends JavaPlugin implements Listener {
     public void onBlockExplode(final BlockExplodeEvent e) {
         final Block b = e.getBlock();
         final Location loc = b.getLocation();
-        if (b.getWorld() == nether && b.getType().isAir() &&
-            (Math.pow(loc.getBlockX() + 36, 2) + Math.pow(loc.getBlockZ(), 2)) < 12544) {
-            e.setCancelled(true);
-            loc.getNearbyPlayers(6).forEach(it -> {
-                it.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 20 * 120, 5, true, false));
-                it.sendMessage("§c请不要在距离世界出生点7个区块以内玩爆炸物!");
-            });
-        }
+//        if (b.getWorld() == nether && b.getType().isAir() &&
+//            (Math.pow(loc.getBlockX() + 36, 2) + Math.pow(loc.getBlockZ(), 2)) < 12544) {
+//            e.setCancelled(true);
+//            loc.getNearbyPlayers(6).forEach(it -> {
+//                it.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 20 * 120, 5, true, false));
+//                it.sendMessage("§c请不要在距离世界出生点7个区块以内玩爆炸物!");
+//            });
+//        }
     }
 
     private boolean checkTrapChest(final Location loc) {
@@ -892,7 +892,7 @@ public final class Main extends JavaPlugin implements Listener {
             if (!isSafe) player.sendTitle(new Title("§c危!", "§e检测到目标位置可能不安全!"));
             player.sendMessage(Constants.CANCEL_HUB);
             player.sendMessage(Constants.MESSAGE_FOOTER);
-            countdowns.put(player, new Pair<>(10, loc));
+            countdowns.put(player, new Pair<>(2, loc));
         }
         if (!now) delays.put(player, System.currentTimeMillis() + 2 * 1000 * 60);
     }
