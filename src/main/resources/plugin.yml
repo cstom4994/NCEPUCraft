@@ -105,8 +105,11 @@ commands:
     description: Rollback last tree-chop chain operation.
     permission: ncepu.treeback
   cleanup:
-    description: Scan loaded chunks and cleanup entity piles (admin only).
+    description: Scan loaded chunks and cleanup entity piles.
     permission: ncepu.cleanup
+  motd:
+    description: Reload MOTD config.
+    permission: ncepu.motd
 
 permissions:
   ncepu.show:
@@ -166,6 +169,8 @@ permissions:
   ncepu.test:
     default: op
   ncepu.cleanup:
+    default: op
+  ncepu.motd:
     default: op
 
 

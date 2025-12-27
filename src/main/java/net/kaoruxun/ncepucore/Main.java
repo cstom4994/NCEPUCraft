@@ -125,6 +125,7 @@ public final class Main extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         if (!getDataFolder().exists()) getDataFolder().mkdir();
+        saveDefaultConfig();
         final Server s = getServer();
         final PluginManager m = s.getPluginManager();
 
@@ -135,6 +136,7 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(rules, this);
         m.registerEvents(this, this);
         m.registerEvents(treeChopperListener, this);
+        m.registerEvents(new MotdListener(this), this);
         Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
         Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
         Objects.requireNonNull(getCommand("show")).setExecutor(new ShowItem());
@@ -176,6 +178,7 @@ public final class Main extends JavaPlugin implements Listener {
                     DisrobeCommand.class,
                     FreezeCommand.class,
                     HomeCommand.class,
+                    MotdCommand.class,
                     MuteCommand.class,
                     OthersHomeCommand.class,
                     WarpCommand.class,
@@ -228,6 +231,8 @@ public final class Main extends JavaPlugin implements Listener {
                     final Server server = getServer();
                     final double tps = server.getTPS()[0];
                     final double mspt = server.getTickTimes()[0] / 1_000_000.0;
+                    lastTps = tps;
+                    lastMspt = mspt;
 
                     if (tps < 4.5) i++;
                     else i = 0;
@@ -284,6 +289,14 @@ public final class Main extends JavaPlugin implements Listener {
                 }
             });
         }, 40L, 40L);
+    }
+
+    public double getLastTps() {
+        return lastTps;
+    }
+
+    public double getLastMspt() {
+        return lastMspt;
     }
 
     public boolean rollbackLastTreeChop(Player player) {
