@@ -6,9 +6,11 @@ import net.kaoruxun.ncepucore.utils.Serializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @CommandName("delwarp")
@@ -41,6 +43,11 @@ public final class DelWarpCommand extends BasicCommand {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return args.length < 1 ? new ArrayList<>(instance.warps) : null;
+        if (args.length != 1) return Collections.emptyList();
+        final ArrayList<String> candidates = new ArrayList<>(instance.warps);
+        Collections.sort(candidates, String.CASE_INSENSITIVE_ORDER);
+        final ArrayList<String> result = new ArrayList<>();
+        StringUtil.copyPartialMatches(args[0], candidates, result);
+        return result;
     }
 }
