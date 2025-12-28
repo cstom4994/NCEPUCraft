@@ -42,6 +42,7 @@ import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 import net.kaoruxun.ncepucore.commands.*;
 import net.kaoruxun.ncepucore.utils.*;
+import net.kaoruxun.ncepucore.imagemap.ImageMapService;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -112,6 +113,7 @@ public final class Main extends JavaPlugin implements Listener {
     public final HashSet<String> warps = new HashSet<>();
     private final WeakHashMap<Player, Long> delays = new WeakHashMap<>();
     private BukkitTask countdownTask;
+    private ImageMapService imageMapService;
 
     private final EndPlatform endPlatform = new EndPlatform();
     private final TreeChopperListener treeChopperListener = new TreeChopperListener();
@@ -179,6 +181,7 @@ public final class Main extends JavaPlugin implements Listener {
                     DisrobeCommand.class,
                     FreezeCommand.class,
                     HomeCommand.class,
+                    ImageMapCommand.class,
                     MotdCommand.class,
                     MuteCommand.class,
                     OthersHomeCommand.class,
@@ -204,6 +207,10 @@ public final class Main extends JavaPlugin implements Listener {
             setEnabled(false);
             return;
         }
+
+        // Image maps (URL -> persistent map renderers)
+        imageMapService = new ImageMapService(this);
+        imageMapService.loadAndRegisterAll();
         countdownTask = getServer().getScheduler().runTaskTimer(this, () -> {
             final Iterator<Map.Entry<Player, Pair<Integer, Location>>> iterator = countdowns.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -304,6 +311,10 @@ public final class Main extends JavaPlugin implements Listener {
         return treeChopperListener.rollbackLastChop(player);
     }
 
+    public ImageMapService getImageMapService() {
+        return imageMapService;
+    }
+
     @Override
     public void onDisable() {
         chair_list.forEach(it -> {
@@ -326,6 +337,11 @@ public final class Main extends JavaPlugin implements Listener {
         deathRecords.clear();
         if (monitorTask != null) monitorTask.cancel();
         monitorTask = null;
+
+        if (imageMapService != null) {
+            imageMapService.shutdown();
+            imageMapService = null;
+        }
     }
 
     @SuppressWarnings("NullableProblems")

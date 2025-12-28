@@ -110,6 +110,9 @@ commands:
   motd:
     description: Reload MOTD config.
     permission: ncepu.motd
+  imgmap:
+    description: Create a persistent map from an image URL.
+    permission: ncepu.imgmap
 
 permissions:
   ncepu.show:
@@ -125,7 +128,6 @@ permissions:
 
   ncepu.carry:
     default: true
-
   ncepu.afk:
     default: true
   ncepu.spawn:
@@ -153,6 +155,8 @@ permissions:
   ncepu.here:
     default: true
   ncepu.treeback:
+    default: true
+  ncepu.imgmap:
     default: true
 
   ncepu.others:
