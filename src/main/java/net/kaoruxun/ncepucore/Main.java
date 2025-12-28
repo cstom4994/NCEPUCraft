@@ -115,6 +115,7 @@ public final class Main extends JavaPlugin implements Listener {
     private final WeakHashMap<Player, Long> delays = new WeakHashMap<>();
     private BukkitTask countdownTask;
     private ImageMapService imageMapService;
+    private EnderPearlChunkLoader enderPearlChunkLoader;
 
     private final EndPlatform endPlatform = new EndPlatform();
     private final TreeChopperListener treeChopperListener = new TreeChopperListener();
@@ -143,6 +144,12 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(new CarryEntityListener(), this);
         m.registerEvents(new UnlockAllRecipesOnJoinListener(), this);
         m.registerEvents(new InspectListener(), this);
+
+        // EnderPearl chunk loader (vanilla-like long-term chunk loading via pearls)
+        enderPearlChunkLoader = new EnderPearlChunkLoader(this);
+        m.registerEvents(enderPearlChunkLoader, this);
+        enderPearlChunkLoader.start();
+
         InspectAsyncWriter.start(this);
         Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
         Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
@@ -205,6 +212,7 @@ public final class Main extends JavaPlugin implements Listener {
                     TestCommand.class,
                     HereCommand.class,
                     InspectCommand.class,
+                    EnderPearlCommand.class,
                     TreeBackCommand.class
             );
         } catch (Exception e) {
@@ -320,6 +328,10 @@ public final class Main extends JavaPlugin implements Listener {
         return imageMapService;
     }
 
+    public EnderPearlChunkLoader getEnderPearlChunkLoader() {
+        return enderPearlChunkLoader;
+    }
+
     @Override
     public void onDisable() {
         chair_list.forEach(it -> {
@@ -327,6 +339,11 @@ public final class Main extends JavaPlugin implements Listener {
             it.remove();
         });
         chair_list.clear();
+
+        if (enderPearlChunkLoader != null) {
+            enderPearlChunkLoader.shutdown();
+            enderPearlChunkLoader = null;
+        }
 
         InspectAsyncWriter.shutdown();
 

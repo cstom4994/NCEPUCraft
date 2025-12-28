@@ -117,6 +117,9 @@ commands:
     description: CoreProtect-like inspect mode. Click blocks to query history.
     permission: ncepu.inspect
     aliases: [ins]
+  enderpearl:
+    description: Debug ender pearls and plugin chunk tickets.
+    permission: ncepu.enderpearl
 
 permissions:
   ncepu.show:
@@ -167,6 +170,8 @@ permissions:
   ncepu.inspect.clean:
     default: op
 
+  ncepu.enderpearl:
+    default: op
   ncepu.others:
     default: op
   ncepu.sudo.avoid:
