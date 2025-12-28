@@ -86,7 +86,6 @@ public final class Main extends JavaPlugin implements Listener {
     public static final SomeItems SOMEITEMS = new SomeItems();
     private World nether, world, theEnd;
     private final Set<Player> beList = Collections.newSetFromMap(new WeakHashMap<>());
-    private final Set<Player> warning = Collections.newSetFromMap(new WeakHashMap<>());
 
     private final String CHAIRS_NAME = "$$Chairs$$";
     private final HashSet<ArmorStand> chair_list = new HashSet<>();
@@ -140,6 +139,7 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(treeChopperListener, this);
         m.registerEvents(new MotdListener(this), this);
         m.registerEvents(new CarryEntityListener(), this);
+        m.registerEvents(new UnlockAllRecipesOnJoinListener(), this);
         Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
         Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
         Objects.requireNonNull(getCommand("show")).setExecutor(new ShowItem());
@@ -621,11 +621,6 @@ public final class Main extends JavaPlugin implements Listener {
             if (flag) Utils.giveAdvancement(AT, e.getPlayer());
             if (value.contains("\u00BF")) Utils.giveAdvancement(QUESTION, e.getPlayer());
         });
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onPlayerLogin(final PlayerLoginEvent e) {
-        if (e.getResult() == PlayerLoginEvent.Result.ALLOWED) warning.add(e.getPlayer());
     }
 
     @EventHandler(ignoreCancelled = true)
