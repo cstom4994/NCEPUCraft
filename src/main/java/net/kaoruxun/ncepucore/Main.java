@@ -43,6 +43,8 @@ import org.iq80.leveldb.impl.Iq80DBFactory;
 import net.kaoruxun.ncepucore.commands.*;
 import net.kaoruxun.ncepucore.utils.*;
 import net.kaoruxun.ncepucore.imagemap.ImageMapService;
+import net.kaoruxun.ncepucore.inspect.InspectListener;
+import net.kaoruxun.ncepucore.inspect.InspectAsyncWriter;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -140,6 +142,8 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(new MotdListener(this), this);
         m.registerEvents(new CarryEntityListener(), this);
         m.registerEvents(new UnlockAllRecipesOnJoinListener(), this);
+        m.registerEvents(new InspectListener(), this);
+        InspectAsyncWriter.start(this);
         Objects.requireNonNull(getCommand("explode")).setExecutor(antiExplode);
         Objects.requireNonNull(getCommand("endplatform")).setExecutor(endPlatform);
         Objects.requireNonNull(getCommand("show")).setExecutor(new ShowItem());
@@ -200,6 +204,7 @@ public final class Main extends JavaPlugin implements Listener {
                     TpHereCommand.class,
                     TestCommand.class,
                     HereCommand.class,
+                    InspectCommand.class,
                     TreeBackCommand.class
             );
         } catch (Exception e) {
@@ -323,6 +328,7 @@ public final class Main extends JavaPlugin implements Listener {
         });
         chair_list.clear();
 
+        InspectAsyncWriter.shutdown();
 
         if (countdownTask != null) countdownTask.cancel();
         countdowns.clear();
