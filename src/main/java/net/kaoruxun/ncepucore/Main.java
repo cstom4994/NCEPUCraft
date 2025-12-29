@@ -191,7 +191,6 @@ public final class Main extends JavaPlugin implements Listener {
                     DelWarpCommand.class,
                     DisrobeCommand.class,
                     FreezeCommand.class,
-                    HatCommand.class,
                     HomeCommand.class,
                     ImageMapCommand.class,
                     MotdCommand.class,
