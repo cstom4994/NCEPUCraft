@@ -56,6 +56,16 @@ public final class ScoreBoardService {
         }
     }
 
+    public void initializePlayerScoreboard(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (!playerScoreBoardToggles.containsKey(uuid)) {
+            playerScoreBoardToggles.put(uuid, true);
+            Scoreboard scoreboard = getPlayerScoreBoard(player);
+            player.setScoreboard(scoreboard);
+            updateScoreboard(player);
+        }
+    }
+
     private void switchToNextBoard() {
         // 切换到下一个排行榜类型
         BoardType[] values = BoardType.values();
@@ -142,22 +152,6 @@ public final class ScoreBoardService {
             playerKills = player.getStatistic(Statistic.PLAYER_KILLS);
         } catch (Exception ignored) {}
         return mobKills + playerKills;
-    }
-
-    private String formatDisplay(PlayerScore playerScore, int rank) {
-        String rankColor;
-        if (rank == 1) {
-            rankColor = ChatColor.GOLD.toString();
-        } else if (rank == 2) {
-            rankColor = ChatColor.GRAY.toString();
-        } else if (rank == 3) {
-            rankColor = ChatColor.YELLOW.toString();
-        } else {
-            rankColor = ChatColor.WHITE.toString();
-        }
-
-        return String.format("%s#%d %s§f: %d",
-                rankColor, rank, playerScore.getPlayerName(), playerScore.getScore());
     }
 
     private Scoreboard getPlayerScoreBoard(Player player) {
