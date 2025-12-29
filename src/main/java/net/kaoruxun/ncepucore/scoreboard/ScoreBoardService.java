@@ -100,9 +100,9 @@ public final class ScoreBoardService {
         int maxEntries = Math.min(playerScores.size(), 10); //最多显示10行数据
         for (int i = 0; i < maxEntries; i++) {
             PlayerScore playerScore = playerScores.get(i);
-            String displayText = String.format("#" + (i + 1) + " " + playerScore.toString());
+            String displayText = String.format("#" + (i + 1) + " " + playerScore.getPlayerName());
             Score score = objective.getScore(displayText);
-            score.setScore(maxEntries - i);
+            score.setScore(playerScore.getScore());
         }
     }
 
