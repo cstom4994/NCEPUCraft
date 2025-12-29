@@ -82,6 +82,9 @@ commands:
   sudo:
     description: Execute command as other player.
     permission: ncepu.sudo
+  scoreboard:
+    description: Show scoreboard.
+    permission: ncepu.scoreboard
   tpaall:
     description: Request all players to teleport.
     permission: ncepu.tpaall
@@ -141,6 +144,8 @@ permissions:
   ncepu.afk:
     default: true
   ncepu.spawn:
+    default: true
+  ncepu.scoreboard:
     default: true
   ncepu.hat:
     default: true

@@ -236,6 +236,7 @@ public final class Main extends JavaPlugin implements Listener {
         imageMapService = new ImageMapService(this);
         imageMapService.loadAndRegisterAll();
         scoreBoardService = new ScoreBoardService(this);
+        scoreBoardService.startTasks();
 
         countdownTask = getServer().getScheduler().runTaskTimer(this, () -> {
             final Iterator<Map.Entry<Player, Pair<Integer, Location>>> iterator = countdowns.entrySet().iterator();
@@ -380,6 +381,11 @@ public final class Main extends JavaPlugin implements Listener {
         if (imageMapService != null) {
             imageMapService.shutdown();
             imageMapService = null;
+        }
+
+        if(scoreBoardService != null) {
+            scoreBoardService.stopTasks();
+            scoreBoardService = null;
         }
     }
 
