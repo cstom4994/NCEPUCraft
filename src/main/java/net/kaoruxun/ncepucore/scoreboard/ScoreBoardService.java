@@ -130,16 +130,17 @@ public final class ScoreBoardService {
     }
 
     private int calculateKillingEntities(Player player) {
-        int total = 0;
-
-        for (Material material : Material.values()) {
-            if (material.isBlock()) {
-                try {
-                    total += player.getStatistic(Statistic.KILL_ENTITY, material);
-                } catch (Exception ignored) {}
-            }
-        }
-        return total;
+        // Bukkit/Paper 的 KILL_ENTITY 统计需要 EntityType 维度 不能传 Material
+        // 这里用更稳定且开销更小的聚合统计 击杀生物+击杀玩家
+        int mobKills = 0;
+        int playerKills = 0;
+        try {
+            mobKills = player.getStatistic(Statistic.MOB_KILLS);
+        } catch (Exception ignored) {}
+        try {
+            playerKills = player.getStatistic(Statistic.PLAYER_KILLS);
+        } catch (Exception ignored) {}
+        return mobKills + playerKills;
     }
 
     private String formatDisplay(PlayerScore playerScore, int rank) {

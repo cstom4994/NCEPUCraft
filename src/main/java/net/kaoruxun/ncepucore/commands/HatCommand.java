@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.util.Map;
+
 /**
  * @author RukiaOvO
  * @date 2025/12/29
@@ -37,24 +39,33 @@ public final class HatCommand extends BasicCommand {
             p.sendMessage("§c你手中没有物品!");
             return true;
         }
-        inventory.setHelmet(item.clone());
 
-        //旧帽子放背包,背包满则丢地上
-        if (currentHat != null && currentHat.getType() != Material.AIR) {
-            if(inventory.firstEmpty() != -1) {
-                inventory.addItem(item);
+        // 只取1个物品作为帽子 避免把整组物品戴在头上导致数量异常
+        ItemStack newHat = item.clone();
+        newHat.setAmount(1);
+        inventory.setHelmet(newHat);
+
+        // 先消耗手上物品 再处理旧帽子 手上只有1个时直接交换 避免背包满导致丢失
+        if (item.getAmount() <= 1) {
+            if (currentHat != null && currentHat.getType() != Material.AIR) {
+                inventory.setItemInMainHand(currentHat);
             } else {
-                p.getWorld().dropItemNaturally(p.getLocation(), currentHat);
+                inventory.setItemInMainHand(new ItemStack(Material.AIR));
+            }
+        } else {
+            item.setAmount(item.getAmount() - 1);
+            inventory.setItemInMainHand(item);
+
+            // 旧帽子放背包 背包满则丢地上 这里必须放currentHat不能放item否则会复制
+            if (currentHat != null && currentHat.getType() != Material.AIR) {
+                Map<Integer, ItemStack> leftovers = inventory.addItem(currentHat);
+                for (ItemStack leftover : leftovers.values()) {
+                    p.getWorld().dropItemNaturally(p.getLocation(), leftover);
+                }
             }
         }
 
-        if (item.getAmount() > 1) {
-            item.setAmount(item.getAmount() - 1);
-        } else {
-            inventory.setItemInMainHand(new ItemStack(Material.AIR));
-        }
-
-        p.sendMessage("§a已将 " + item.getType().name() + " §a戴在头上!");
+        p.sendMessage("§a已将 " + newHat.getType().name() + " §a戴在头上!");
         return true;
     }
 }
