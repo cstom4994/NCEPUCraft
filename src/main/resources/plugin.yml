@@ -49,6 +49,9 @@ commands:
   toggle:
     description: Toggle personal features.
     permission: ncepu.toggle
+  hat:
+    description: Allow players to hat the items on hand
+    permission: ncepu.hat
   home:
     description: Teleport to home.
     permission: ncepu.home
@@ -138,6 +141,8 @@ permissions:
   ncepu.afk:
     default: true
   ncepu.spawn:
+    default: true
+  ncepu.hat:
     default: true
   ncepu.home:
     default: true
