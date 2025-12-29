@@ -22,4 +22,9 @@ public class PlayerScore {
     public int getScore() {
         return score;
     }
+
+    @Override
+    public String toString() {
+        return String.format(playerName + ": " + score);
+    }
 }

@@ -90,7 +90,7 @@ public final class ScoreBoardService {
         int maxEntries = Math.min(playerScores.size(), 10); //最多显示10行数据
         for (int i = 0; i < maxEntries; i++) {
             PlayerScore playerScore = playerScores.get(i);
-            String displayText = formatDisplay(playerScore, i + 1);
+            String displayText = String.format("#" + (i + 1) + " " + playerScore.toString());
             Score score = objective.getScore(displayText);
             score.setScore(maxEntries - i);
         }
@@ -106,6 +106,7 @@ public final class ScoreBoardService {
                 case FISHING_RANK -> player.getStatistic(Statistic.FISH_CAUGHT);
                 case MINING_RANK -> calculateMiningBlocks(player);
                 case KILLING_RANK -> calculateKillingEntities(player);
+                case DEATH_RANK -> player.getStatistic(Statistic.DEATHS);
             };
 
             entries.add(new PlayerScore(playerName, score));
