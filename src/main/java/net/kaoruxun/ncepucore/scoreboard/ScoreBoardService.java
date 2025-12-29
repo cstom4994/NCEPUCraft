@@ -18,7 +18,8 @@ public final class ScoreBoardService {
     private final Map<UUID, Boolean> playerScoreBoardToggles = new ConcurrentHashMap<>();
     private final Map<UUID, Scoreboard> playerScoreBoards = new ConcurrentHashMap<>();
     private BoardType currentBoard = BoardType.LEVEL_RANK; //默认显示等级排行
-    private int timeInterval = 10; //排行榜更新以及切换间隔10s
+    // Paper/Bukkit 调度器周期单位是 tick 20 tick = 1 秒
+    private int timeIntervalSeconds = 10; //排行榜更新以及切换间隔10s
 
     private BukkitRunnable updateTask;
     private BukkitRunnable switchTask;
@@ -28,14 +29,9 @@ public final class ScoreBoardService {
     }
 
     public void startTasks() {
-        updateTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                updateAllScoreboards();
-            }
-        };
-        updateTask.runTaskTimer(this.plugin, 0L, timeInterval);
+        long periodTicks = Math.max(1L, timeIntervalSeconds * 20L);
 
+        // 使用单一任务 每隔 N 秒切换一次榜单并刷新 避免重复刷新
         switchTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -43,7 +39,9 @@ public final class ScoreBoardService {
                 updateAllScoreboards();
             }
         };
-        switchTask.runTaskTimer(this.plugin, 0L, timeInterval);
+        // 启动时先刷新一次 之后按间隔循环
+        updateAllScoreboards();
+        switchTask.runTaskTimer(this.plugin, periodTicks, periodTicks);
     }
 
     public void stopTasks() {
@@ -104,10 +102,10 @@ public final class ScoreBoardService {
         for (Player player : Bukkit.getOnlinePlayers()) {
             String playerName = player.getName();
             int score = switch (type) {
-                case BoardType.LEVEL_RANK -> player.getLevel();
-                case BoardType.FISHING_RANK -> player.getStatistic(Statistic.FISH_CAUGHT);
-                case BoardType.MINING_RANK -> calculateMiningBlocks(player);
-                case BoardType.KILLING_RANK -> calculateKillingEntities(player);
+                case LEVEL_RANK -> player.getLevel();
+                case FISHING_RANK -> player.getStatistic(Statistic.FISH_CAUGHT);
+                case MINING_RANK -> calculateMiningBlocks(player);
+                case KILLING_RANK -> calculateKillingEntities(player);
             };
 
             entries.add(new PlayerScore(playerName, score));
@@ -125,7 +123,7 @@ public final class ScoreBoardService {
             if (material.isBlock()) {
                 try {
                     total += player.getStatistic(Statistic.MINE_BLOCK, material);
-                } catch (Exception _) {}
+                } catch (Exception ignored) {}
             }
         }
         return total;
@@ -138,7 +136,7 @@ public final class ScoreBoardService {
             if (material.isBlock()) {
                 try {
                     total += player.getStatistic(Statistic.KILL_ENTITY, material);
-                } catch (Exception _) {}
+                } catch (Exception ignored) {}
             }
         }
         return total;
@@ -162,7 +160,7 @@ public final class ScoreBoardService {
 
     private Scoreboard getPlayerScoreBoard(Player player) {
         return playerScoreBoards.computeIfAbsent(player.getUniqueId(),
-                _ -> Bukkit.getScoreboardManager().getNewScoreboard());
+                id -> Bukkit.getScoreboardManager().getNewScoreboard());
     }
 
     public void toggleScoreBoard(Player player) {

@@ -37,7 +37,10 @@ public final class Utils {
             assert name != null;
             final BasicCommand exec = it.getConstructor(Main.class).newInstance(main);
             final PluginCommand cmd = main.getServer().getPluginCommand(name.value());
-            assert cmd != null;
+            if (cmd == null) {
+                main.getLogger().severe("[Command] plugin.yml 未声明命令: '" + name.value() + "' (class=" + it.getName() + ")，已跳过注册。");
+                continue;
+            }
             cmd.setUsage(Constants.WRONG_USAGE);
             cmd.setPermissionMessage(Constants.NO_PERMISSION);
             cmd.setDescription(Constants.COMMAND_DESCRIPTION);
