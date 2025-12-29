@@ -5,6 +5,7 @@ import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import net.kaoruxun.ncepucore.scoreboard.ScoreBoardService;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -37,7 +38,12 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 import net.kaoruxun.ncepucore.commands.*;
@@ -66,6 +72,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
@@ -115,6 +122,7 @@ public final class Main extends JavaPlugin implements Listener {
     private final WeakHashMap<Player, Long> delays = new WeakHashMap<>();
     private BukkitTask countdownTask;
     private ImageMapService imageMapService;
+    private ScoreBoardService scoreBoardService;
     private EnderPearlChunkLoader enderPearlChunkLoader;
 
     private final EndPlatform endPlatform = new EndPlatform();
@@ -158,6 +166,7 @@ public final class Main extends JavaPlugin implements Listener {
         Objects.requireNonNull(getCommand("acceptrule")).setExecutor(rules);
         Objects.requireNonNull(getCommand("welcome")).setExecutor(new Welcome());
         Objects.requireNonNull(getCommand("bedrock")).setExecutor(this);
+        Objects.requireNonNull(getCommand("scoreboard")).setExecutor(new ScoreBoardCommand(this));
 
         world = s.getWorld("world");
         nether = s.getWorld("world_nether");
@@ -204,6 +213,7 @@ public final class Main extends JavaPlugin implements Listener {
                     SpawnCommand.class,
                     StatusCommand.class,
                     SudoCommand.class,
+                    ScoreBoardCommand.class,
                     ToggleCommand.class,
                     TpaAllCommand.class,
                     TpAcceptCommand.class,
@@ -225,6 +235,9 @@ public final class Main extends JavaPlugin implements Listener {
         // Image maps (URL -> persistent map renderers)
         imageMapService = new ImageMapService(this);
         imageMapService.loadAndRegisterAll();
+        scoreBoardService = new ScoreBoardService(this);
+        scoreBoardService.startTasks();
+
         countdownTask = getServer().getScheduler().runTaskTimer(this, () -> {
             final Iterator<Map.Entry<Player, Pair<Integer, Location>>> iterator = countdowns.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -241,7 +254,6 @@ public final class Main extends JavaPlugin implements Listener {
                 } else p.sendActionBar("§e将在 §b" + pair.left + "秒 §e后进行传送!");
             }
         }, 20, 20);
-
 
         // 监控主循环放到异步线程 但 Bukkit API(包含getTPS/setPlayerListFooter/broadcast/shutdown等)仍必须回到主线程执行
         // 这样能保证monitor不在主线程跑循环 同时不触发Paper的线程安全问题
@@ -329,6 +341,10 @@ public final class Main extends JavaPlugin implements Listener {
         return imageMapService;
     }
 
+    public ScoreBoardService getScoreBoardService() {
+        return scoreBoardService;
+    }
+
     public EnderPearlChunkLoader getEnderPearlChunkLoader() {
         return enderPearlChunkLoader;
     }
@@ -365,6 +381,11 @@ public final class Main extends JavaPlugin implements Listener {
         if (imageMapService != null) {
             imageMapService.shutdown();
             imageMapService = null;
+        }
+
+        if(scoreBoardService != null) {
+            scoreBoardService.stopTasks();
+            scoreBoardService = null;
         }
     }
 
@@ -710,9 +731,9 @@ public final class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void onEntityExplode(final EntityExplodeEvent e) {
         switch (e.getEntityType()) {
-            case CREEPER:
-            case FIREBALL:
-            case SMALL_FIREBALL:
+//            case CREEPER:
+//            case FIREBALL:
+//            case SMALL_FIREBALL:
             case DRAGON_FIREBALL:
             case ENDER_DRAGON:
             case WITHER_SKULL:
