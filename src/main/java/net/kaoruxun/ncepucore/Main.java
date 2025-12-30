@@ -237,6 +237,9 @@ public final class Main extends JavaPlugin implements Listener {
         imageMapService.loadAndRegisterAll();
         scoreBoardService = new ScoreBoardService(this);
         scoreBoardService.startTasks();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            scoreBoardService.initializePlayerScoreboard(player);
+        }
 
         countdownTask = getServer().getScheduler().runTaskTimer(this, () -> {
             final Iterator<Map.Entry<Player, Pair<Integer, Location>>> iterator = countdowns.entrySet().iterator();
