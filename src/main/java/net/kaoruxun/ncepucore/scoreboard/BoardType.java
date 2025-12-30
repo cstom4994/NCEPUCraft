@@ -11,7 +11,7 @@ public enum BoardType {
     FISHING_RANK("§b§l钓鱼数"),
     MINING_RANK("§7§l挖掘数"),
     KILLING_RANK("§4§l击杀实体数"),
-    DEATH_RANK("§0§l死亡次数");
+    DEATH_RANK("§j§l死亡次数");
 
     private final String titleName;
 

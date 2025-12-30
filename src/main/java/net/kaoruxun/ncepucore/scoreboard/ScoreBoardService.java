@@ -21,7 +21,6 @@ public final class ScoreBoardService {
     // Paper/Bukkit 调度器周期单位是 tick 20 tick = 1 秒
     private int timeIntervalSeconds = 10; //排行榜更新以及切换间隔10s
 
-    private BukkitRunnable updateTask;
     private BukkitRunnable switchTask;
 
     public ScoreBoardService(JavaPlugin plugin) {
@@ -45,7 +44,6 @@ public final class ScoreBoardService {
     }
 
     public void stopTasks() {
-        if (updateTask != null) updateTask.cancel();
         if (switchTask != null) switchTask.cancel();
 
         // 清理所有计分板
@@ -56,14 +54,18 @@ public final class ScoreBoardService {
         }
     }
 
-    public void initializePlayerScoreboard(Player player) {
-        UUID uuid = player.getUniqueId();
-        if (!playerScoreBoardToggles.containsKey(uuid)) {
-            playerScoreBoardToggles.put(uuid, true);
-            Scoreboard scoreboard = getPlayerScoreBoard(player);
-            player.setScoreboard(scoreboard);
-            updateScoreboard(player);
+    public void initScoreboard(Player player) {
+        if (!isScoreBoardEnabled(player)) {
+            return;
         }
+
+        Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        Objective objective = scoreboard.registerNewObjective("scoreboard", "dummy", currentBoard.getTitleName());
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        playerScoreBoards.put(player.getUniqueId(), scoreboard);
+        player.setScoreboard(scoreboard);
+        updateScoreboard(player);
     }
 
     private void switchToNextBoard() {
@@ -77,11 +79,16 @@ public final class ScoreBoardService {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (isScoreBoardEnabled(player)) {
                 updateScoreboard(player);
+                player.setScoreboard(player.getScoreboard());
             }
         }
     }
 
     private void updateScoreboard(Player player) {
+        if (!isScoreBoardEnabled(player)) {
+            return;
+        }
+
         Scoreboard scoreboard = getPlayerScoreBoard(player);
         Objective objective = scoreboard.getObjective("scoreboard");
 
@@ -100,7 +107,7 @@ public final class ScoreBoardService {
         int maxEntries = Math.min(playerScores.size(), 10); //最多显示10行数据
         for (int i = 0; i < maxEntries; i++) {
             PlayerScore playerScore = playerScores.get(i);
-            String displayText = String.format("#" + (i + 1) + " " + playerScore.getPlayerName());
+            String displayText = "§6§l#" + (i + 1) + " §2" + playerScore.getPlayerName();
             Score score = objective.getScore(displayText);
             score.setScore(playerScore.getScore());
         }
