@@ -18,10 +18,8 @@ public final class ScoreBoardCommand extends BasicCommand{
 
     @Override
     public boolean callback(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) return false;
-
-        Player player = (Player) sender;
-        instance.getScoreBoardService().toggleScoreBoard(player);
+        if (!(sender instanceof Player player)) return false;
+        instance.getScoreBoardService().toggleForPlayer(player);
 
         return true;
     }
