@@ -12,7 +12,7 @@ import org.bukkit.scoreboard.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class ScoreBoard {
+public final class ScoreBoardService {
 
     private final JavaPlugin plugin;
     private final Map<UUID, Scoreboard> playerScoreboards = new ConcurrentHashMap<>();
@@ -23,7 +23,7 @@ public final class ScoreBoard {
 
     private final int updateInterval = 10;
 
-    public ScoreBoard(JavaPlugin plugin) {
+    public ScoreBoardService(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -32,7 +32,7 @@ public final class ScoreBoard {
         startUpdateTask();
     }
 
-    public void stop() {
+    public void shutdown() {
         stopUpdateTask();
         clearAllScoreboards();
     }
@@ -198,7 +198,7 @@ public final class ScoreBoard {
         return mobKills + playerKills;
     }
 
-    private void removeScoreboard(Player player) {
+    public void removeScoreboard(Player player) {
         player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         playerScoreboards.remove(player.getUniqueId());
     }
