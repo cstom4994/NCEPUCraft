@@ -5,16 +5,14 @@ import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import net.kaoruxun.ncepucore.scoreboard.ScoreBoardService;
+import net.kaoruxun.ncepucore.scoreboard.ScoreBoard;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Chest;
 import org.bukkit.block.data.type.Leaves;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -28,22 +26,15 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.SmithItemEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.*;
-import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 import net.kaoruxun.ncepucore.commands.*;
@@ -72,7 +63,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
@@ -122,7 +112,7 @@ public final class Main extends JavaPlugin implements Listener {
     private final WeakHashMap<Player, Long> delays = new WeakHashMap<>();
     private BukkitTask countdownTask;
     private ImageMapService imageMapService;
-    private ScoreBoardService scoreBoardService;
+    private ScoreBoard scoreBoard;
     private EnderPearlChunkLoader enderPearlChunkLoader;
 
     private final EndPlatform endPlatform = new EndPlatform();
@@ -235,11 +225,8 @@ public final class Main extends JavaPlugin implements Listener {
         // Image maps (URL -> persistent map renderers)
         imageMapService = new ImageMapService(this);
         imageMapService.loadAndRegisterAll();
-        scoreBoardService = new ScoreBoardService(this);
-        scoreBoardService.startTasks();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            scoreBoardService.initializePlayerScoreboard(player);
-        }
+        scoreBoard = new ScoreBoard(this);
+        scoreBoard.start();
 
         countdownTask = getServer().getScheduler().runTaskTimer(this, () -> {
             final Iterator<Map.Entry<Player, Pair<Integer, Location>>> iterator = countdowns.entrySet().iterator();
@@ -344,8 +331,8 @@ public final class Main extends JavaPlugin implements Listener {
         return imageMapService;
     }
 
-    public ScoreBoardService getScoreBoardService() {
-        return scoreBoardService;
+    public ScoreBoard getScoreBoardService() {
+        return scoreBoard;
     }
 
     public EnderPearlChunkLoader getEnderPearlChunkLoader() {
@@ -386,9 +373,9 @@ public final class Main extends JavaPlugin implements Listener {
             imageMapService = null;
         }
 
-        if(scoreBoardService != null) {
-            scoreBoardService.stopTasks();
-            scoreBoardService = null;
+        if(scoreBoard != null) {
+            scoreBoard.stop();
+            scoreBoard = null;
         }
     }
 
@@ -435,6 +422,10 @@ public final class Main extends JavaPlugin implements Listener {
         p.sendMessage(Constants.JOIN_MESSAGES);
         p.sendMessage(Constants.JOIN_MESSAGE1);
         p.sendMessage(Constants.JOIN_MESSAGE_FOOTER);
+
+        if (scoreBoard.isEnabled(p)) {
+            scoreBoard.createForJoinPlayer(p);
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
