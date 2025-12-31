@@ -85,6 +85,9 @@ commands:
   scoreboard:
     description: Show scoreboard.
     permission: ncepu.scoreboard
+  shulkerboxpreview:
+    description: Allow players to preview shulkerbox without opening them
+    permission: ncepu.shulkerboxpreview
   tpaall:
     description: Request all players to teleport.
     permission: ncepu.tpaall
@@ -146,6 +149,8 @@ permissions:
   ncepu.spawn:
     default: true
   ncepu.scoreboard:
+    default: true
+  ncepu.shulkerboxpreview:
     default: true
   ncepu.hat:
     default: true

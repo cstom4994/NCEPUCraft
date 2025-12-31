@@ -5,7 +5,10 @@ import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import net.kaoruxun.ncepucore.scoreboard.ScoreBoard;
+import net.kaoruxun.ncepucore.scoreboard.ScoreBoardService;
+import net.kaoruxun.ncepucore.scoreboard.ScoreBoardListener;
+import net.kaoruxun.ncepucore.shulkerboxpreview.ShulkerBoxPreviewListener;
+import net.kaoruxun.ncepucore.shulkerboxpreview.ShulkerBoxService;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -112,11 +115,14 @@ public final class Main extends JavaPlugin implements Listener {
     private final WeakHashMap<Player, Long> delays = new WeakHashMap<>();
     private BukkitTask countdownTask;
     private ImageMapService imageMapService;
-    private ScoreBoard scoreBoard;
+    private ScoreBoardService scoreBoardService = new ScoreBoardService(this);
+    private ShulkerBoxService shulkerBoxService = new ShulkerBoxService();
     private EnderPearlChunkLoader enderPearlChunkLoader;
 
     private final EndPlatform endPlatform = new EndPlatform();
     private final TreeChopperListener treeChopperListener = new TreeChopperListener();
+    private final ScoreBoardListener scoreBoardListener = new ScoreBoardListener(scoreBoardService);
+    private final ShulkerBoxPreviewListener shulkerBoxPreviewListener = new ShulkerBoxPreviewListener(shulkerBoxService);
 
 
     {
@@ -142,6 +148,8 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(new CarryEntityListener(), this);
         m.registerEvents(new UnlockAllRecipesOnJoinListener(), this);
         m.registerEvents(new InspectListener(), this);
+        m.registerEvents(scoreBoardListener, this);
+        m.registerEvents(shulkerBoxPreviewListener, this);
 
         // EnderPearl chunk loader (vanilla-like long-term chunk loading via pearls)
         enderPearlChunkLoader = new EnderPearlChunkLoader(this);
@@ -157,6 +165,7 @@ public final class Main extends JavaPlugin implements Listener {
         Objects.requireNonNull(getCommand("welcome")).setExecutor(new Welcome());
         Objects.requireNonNull(getCommand("bedrock")).setExecutor(this);
         Objects.requireNonNull(getCommand("scoreboard")).setExecutor(new ScoreBoardCommand(this));
+        Objects.requireNonNull(getCommand("shulkerboxpreview")).setExecutor(this);
 
         world = s.getWorld("world");
         nether = s.getWorld("world_nether");
@@ -225,8 +234,8 @@ public final class Main extends JavaPlugin implements Listener {
         // Image maps (URL -> persistent map renderers)
         imageMapService = new ImageMapService(this);
         imageMapService.loadAndRegisterAll();
-        scoreBoard = new ScoreBoard(this);
-        scoreBoard.start();
+
+        scoreBoardService.start();
 
         countdownTask = getServer().getScheduler().runTaskTimer(this, () -> {
             final Iterator<Map.Entry<Player, Pair<Integer, Location>>> iterator = countdowns.entrySet().iterator();
@@ -331,8 +340,12 @@ public final class Main extends JavaPlugin implements Listener {
         return imageMapService;
     }
 
-    public ScoreBoard getScoreBoardService() {
-        return scoreBoard;
+    public ScoreBoardService getScoreBoardService() {
+        return scoreBoardService;
+    }
+
+    public ShulkerBoxService getShulkerBoxService() {
+        return shulkerBoxService;
     }
 
     public EnderPearlChunkLoader getEnderPearlChunkLoader() {
@@ -373,9 +386,9 @@ public final class Main extends JavaPlugin implements Listener {
             imageMapService = null;
         }
 
-        if(scoreBoard != null) {
-            scoreBoard.stop();
-            scoreBoard = null;
+        if(scoreBoardService != null) {
+            scoreBoardService.shutdown();
+            scoreBoardService = null;
         }
     }
 
@@ -422,10 +435,6 @@ public final class Main extends JavaPlugin implements Listener {
         p.sendMessage(Constants.JOIN_MESSAGES);
         p.sendMessage(Constants.JOIN_MESSAGE1);
         p.sendMessage(Constants.JOIN_MESSAGE_FOOTER);
-
-        if (scoreBoard.isEnabled(p)) {
-            scoreBoard.createForJoinPlayer(p);
-        }
     }
 
     @EventHandler(ignoreCancelled = true)
