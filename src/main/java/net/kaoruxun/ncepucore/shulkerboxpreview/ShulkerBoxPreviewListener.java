@@ -65,10 +65,8 @@ public class ShulkerBoxPreviewListener implements Listener {
             case GameMode.SURVIVAL, GameMode.ADVENTURE -> {
                 return e.getClick() == ClickType.RIGHT;
             }
-            default -> {
-                return false;
-            }
         }
+        return false;
     }
 
     @EventHandler
