@@ -1,10 +1,12 @@
 package net.kaoruxun.ncepucore.shulkerboxpreview;
 
+import org.bukkit.GameMode;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
@@ -35,13 +37,10 @@ public class ShulkerBoxPreviewListener implements Listener {
         }
 
         ItemStack itemStack = e.getCurrentItem();
-        ClickType clickType = e.getClick();
         ShulkerBox shulkerBox = ShulkerBoxPreviewUtils.toShulkerBox(itemStack);
-        if (shulkerBox != null && (clickType == ClickType.RIGHT || clickType == ClickType.CREATIVE)) {
+        if (shulkerBox != null && checkAction(player, e)) {
             openShulkerPreview(player, shulkerBox);
         }
-
-        clearCursorItem(player);
     }
 
     private void openShulkerPreview(Player player, ShulkerBox shulkerBox) {
@@ -59,9 +58,25 @@ public class ShulkerBoxPreviewListener implements Listener {
         }
     }
 
+    boolean checkAction(Player p, InventoryClickEvent e) {
+        switch (p.getGameMode()) {
+//            case GameMode.CREATIVE -> {
+//                return e.getAction() == InventoryAction.PLACE_ALL;
+//            }
+            case GameMode.SURVIVAL, GameMode.ADVENTURE -> {
+                return e.getClick() == ClickType.RIGHT;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
+
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent e) {
         if (!(e.getPlayer() instanceof Player p)) return;
-        clearCursorItem(p);
+        if (e.getView().getTitle().contains(PREVIEW_TITLE)) {
+            clearCursorItem(p);
+        }
     }
 }

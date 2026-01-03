@@ -766,8 +766,8 @@ public final class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onInventoryClick(final InventoryClickEvent e) {
-        if (e.getWhoClicked().isOp()) return;
-        final InventoryHolder holder = e.getView().getTopInventory().getHolder();
+//        if (e.getWhoClicked().isOp()) return;
+//        final InventoryHolder holder = e.getView().getTopInventory().getHolder();
 //        if (holder instanceof Chest && e.getWhoClicked() instanceof Player) {
 //            if (e.getClickedInventory() == e.getView().getTopInventory() && checkTrapChestExact(((Chest) holder).getLocation())) {
 //                Player player = (Player) e.getWhoClicked();
