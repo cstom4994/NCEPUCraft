@@ -7,8 +7,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.kaoruxun.ncepucore.scoreboard.ScoreBoardService;
 import net.kaoruxun.ncepucore.scoreboard.ScoreBoardListener;
-import net.kaoruxun.ncepucore.shulkerboxpreview.ShulkerBoxPreviewListener;
-import net.kaoruxun.ncepucore.shulkerboxpreview.ShulkerBoxService;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -44,6 +42,7 @@ import net.kaoruxun.ncepucore.commands.*;
 import net.kaoruxun.ncepucore.utils.*;
 import net.kaoruxun.ncepucore.imagemap.ImageMapService;
 import net.kaoruxun.ncepucore.inspect.InspectListener;
+import net.kaoruxun.ncepucore.shulker.ShulkerBoxPreviewListener;
 import net.kaoruxun.ncepucore.inspect.InspectAsyncWriter;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -116,14 +115,12 @@ public final class Main extends JavaPlugin implements Listener {
     private BukkitTask countdownTask;
     private ImageMapService imageMapService;
     private ScoreBoardService scoreBoardService = new ScoreBoardService(this);
-    private ShulkerBoxService shulkerBoxService = new ShulkerBoxService();
     private EnderPearlChunkLoader enderPearlChunkLoader;
+    private ShulkerBoxPreviewListener shulkerBoxPreviewListener;
 
     private final EndPlatform endPlatform = new EndPlatform();
     private final TreeChopperListener treeChopperListener = new TreeChopperListener();
     private final ScoreBoardListener scoreBoardListener = new ScoreBoardListener(scoreBoardService);
-    private final ShulkerBoxPreviewListener shulkerBoxPreviewListener = new ShulkerBoxPreviewListener(shulkerBoxService);
-
 
     {
         INSTANCE = this;
@@ -149,6 +146,9 @@ public final class Main extends JavaPlugin implements Listener {
         m.registerEvents(new UnlockAllRecipesOnJoinListener(), this);
         m.registerEvents(new InspectListener(), this);
         m.registerEvents(scoreBoardListener, this);
+
+        // ShulkerBox preview (right click air to open and edit shulkerbox in hand)
+        shulkerBoxPreviewListener = new ShulkerBoxPreviewListener();
         m.registerEvents(shulkerBoxPreviewListener, this);
 
         // EnderPearl chunk loader (vanilla-like long-term chunk loading via pearls)
@@ -344,10 +344,6 @@ public final class Main extends JavaPlugin implements Listener {
         return scoreBoardService;
     }
 
-    public ShulkerBoxService getShulkerBoxService() {
-        return shulkerBoxService;
-    }
-
     public EnderPearlChunkLoader getEnderPearlChunkLoader() {
         return enderPearlChunkLoader;
     }
@@ -404,6 +400,16 @@ public final class Main extends JavaPlugin implements Listener {
                 beList.add((Player) sender);
                 sender.sendMessage("§a您已进入 Bedrock 模式!");
             }
+        }
+        if (command.getName().equalsIgnoreCase("shulkerboxpreview")) {
+            final Player p = (Player) sender;
+            // 命令作为备用入口 打开主手(如果主手不是潜影盒则尝试副手)
+            if (shulkerBoxPreviewListener != null &&
+                    (shulkerBoxPreviewListener.openFor(p, EquipmentSlot.HAND) ||
+                            shulkerBoxPreviewListener.openFor(p, EquipmentSlot.OFF_HAND))) {
+                return true;
+            }
+            p.sendMessage("§c请手持潜影盒后再使用该功能");
         }
         return true;
     }
