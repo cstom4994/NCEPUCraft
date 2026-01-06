@@ -130,7 +130,6 @@ public final class Main extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         if (!getDataFolder().exists()) getDataFolder().mkdir();
-        saveDefaultConfig();
         final Server s = getServer();
         final PluginManager m = s.getPluginManager();
 

@@ -8,10 +8,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerListPingEvent;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 public final class MotdListener implements Listener {
     private final Main instance;
+
+    // 支持占位符: {online} {max} {tps} {mspt} {version}
+    private static final List<String> MOTD_LINES = List.of(
+            "&aBIGT &7| &f大唐盛世",
+            "&7在线: &b{online}&7/&b{max} &7| &aTPS: &f{tps} &7MSPT: &f{mspt}"
+    );
 
     public MotdListener(Main instance) {
         this.instance = instance;
@@ -19,20 +24,7 @@ public final class MotdListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPing(ServerListPingEvent event) {
-        if (!instance.getConfig().getBoolean("motd.enabled", true)) return;
-
-        final boolean random = instance.getConfig().getBoolean("motd.random", false);
-        String motd;
-
-        if (random) {
-            final List<String> messages = instance.getConfig().getStringList("motd.messages");
-            if (messages == null || messages.isEmpty()) return;
-            motd = messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
-        } else {
-            final List<String> lines = instance.getConfig().getStringList("motd.lines");
-            if (lines == null || lines.isEmpty()) return;
-            motd = String.join("\n", lines);
-        }
+        String motd = String.join("\n", MOTD_LINES);
 
         motd = applyPlaceholders(motd, event);
         motd = ChatColor.translateAlternateColorCodes('&', motd);
